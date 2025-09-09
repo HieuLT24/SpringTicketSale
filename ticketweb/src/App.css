@@ -1,0 +1,86 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Custom styles cho TicketHub */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+  font-size: 1.5rem !important;
+}
+
+.card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.bg-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+.bg-warning {
+  background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
+}
+
+/* Footer Link Hover Effects */
+footer a.text-white {
+  transition: all 0.3s ease;
+}
+
+footer a.text-white:hover {
+  color: #ffc107 !important;
+  text-decoration: underline !important;
+}
+
+footer span.text-white {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+footer span.text-white:hover {
+  color: #ffc107 !important;
+}
+
+/* Category Cards */
+.category-card {
+  border: 2px solid transparent !important;
+}
+
+.category-card:hover {
+  border-color: #007bff !important;
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15) !important;
+}
+
+.category-card.border-primary {
+  border-color: #007bff !important;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%) !important;
+}
+
+/* Categories Detail Page */
+.category-detail-card {
+  border: 1px solid #e9ecef;
+  border-radius: 15px;
+}
+
+.category-detail-card:hover {
+  border-color: #007bff;
+  box-shadow: 0 12px 30px rgba(0, 123, 255, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: 2.5rem;
+  }
+  
+  .lead {
+    font-size: 1.1rem;
+  }
+}
