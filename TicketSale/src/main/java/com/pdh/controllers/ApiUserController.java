@@ -84,4 +84,47 @@ public class ApiUserController {
 
         return new ResponseEntity<>(this.userService.getUserByUsername(username), HttpStatus.OK);
     }
+
+    @PostMapping(path = "/secure/profile",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateProfile(Principal principal,
+            HttpServletRequest request,
+            @RequestParam(name = "fullname", required = false) String fullname,
+            @RequestParam(name = "email", required = false) String email,
+            @RequestParam(name = "avatar", required = false) MultipartFile avatar) {
+        String username = null;
+        if (principal != null) {
+            username = principal.getName();
+        } else if (SecurityContextHolder.getContext() != null && SecurityContextHolder.getContext().getAuthentication() != null) {
+            username = SecurityContextHolder.getContext().getAuthentication().getName();
+        } else if (request.getAttribute("username") != null) {
+            username = String.valueOf(request.getAttribute("username"));
+        }
+
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Chưa xác thực");
+        }
+        this.userService.updateUser(username, fullname, email, avatar);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/secure/password")
+    public ResponseEntity<?> changePassword(Principal principal, HttpServletRequest request, @RequestBody Map<String, String> body) {
+
+        String oldPassword = body.get("oldPassword");
+        String newPassword = body.get("newPassword");
+
+        String username = null;
+        if (principal != null) {
+            username = principal.getName();
+        } else if (SecurityContextHolder.getContext() != null && SecurityContextHolder.getContext().getAuthentication() != null) {
+            username = SecurityContextHolder.getContext().getAuthentication().getName();
+        } else if (request.getAttribute("username") != null) {
+            username = String.valueOf(request.getAttribute("username"));
+        }
+        boolean ok = this.userService.changePassword(username, oldPassword, newPassword);
+        if (!ok) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mật khẩu hiện tại không đúng");
+        return ResponseEntity.ok().build();
+    }
 }

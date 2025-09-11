@@ -10,7 +10,9 @@ export const endpoints = {
     'eventDetail': (eventId) => `events/${eventId}`,
     'login': 'login',
     'register': 'register',
-    'profile': 'secure/profile'
+    'profile': 'secure/profile',
+    'updateProfile': 'secure/profile',
+    'changePassword': 'secure/password'
 }
 
 export const authApis = () => {

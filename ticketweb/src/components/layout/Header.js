@@ -78,7 +78,7 @@ const Header = () => {
                     <small className="text-muted">{user?.email}</small>
                   </Dropdown.Header>
                   <Dropdown.Divider />
-                  <Dropdown.Item as={Link} to="/profile" className="py-2">
+                  <Dropdown.Item as={Link} to="/secure/profile" className="py-2">
                     <i className="fas fa-user-circle me-2 text-primary"></i>
                     Thông tin cá nhân
                   </Dropdown.Item>

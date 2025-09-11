@@ -58,10 +58,9 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User updateUser(User user) {
+    public void updateUser(User user) {
         Session s = this.factory.getObject().getCurrentSession();
         s.merge(user);
-        return user;
     }
 
     @Override

@@ -90,9 +90,36 @@ public class UserServiceImpl implements UserService {
     }
 
 
+
     @Override
-    public void updateUser(User user) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void updateUser(String username, String fullname, String email, MultipartFile avatar) {
+        User u = this.userRepo.getUserByUsername(username);
+        
+
+        if (fullname != null) u.setFullname(fullname);
+        if (email != null) u.setEmail(email);
+
+        if (avatar != null && !avatar.isEmpty()) {
+            try {
+                Map res = cloudinary.uploader().upload(avatar.getBytes(), ObjectUtils.asMap("resource_type", "auto", "folder", "user_avatar"));
+                u.setAvatar(res.get("secure_url").toString());
+            } catch (IOException ex) {
+                System.err.println("Error uploading avatar: " + ex.getMessage());
+            }
+        }
+
+        this.userRepo.updateUser(u);
+    }
+
+    @Override
+    public boolean changePassword(String username, String oldPassword, String newPassword) {
+        User u = this.userRepo.getUserByUsername(username);
+        if (u == null) return false;
+        if (!this.passwordEncoder.matches(oldPassword, u.getPassword())) return false;
+
+        u.setPassword(this.passwordEncoder.encode(newPassword));
+        this.userRepo.updateUser(u);
+        return true;
     }
 
     @Override
