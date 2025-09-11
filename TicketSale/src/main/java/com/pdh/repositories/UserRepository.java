@@ -12,9 +12,11 @@ import java.util.List;
  * @author duchi
  */
 public interface UserRepository {
-    public User getUserByUsername (String username);
-    public List<User> getListUsers();
-    public void createUser(User user);
-    public void updateUser(User user);
-    public void deleteUserById(int id);
+    User getUserByUsername (String username);
+    List<User> getListUsers();
+    User createUser(User user);
+    boolean authenticate(String username, String password);
+    User updateUser(User user);
+    void deleteUserById(int id);
+    
 }

@@ -11,23 +11,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import java.io.IOException;
 import java.util.List;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 
 /**
  *
@@ -40,15 +39,14 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
     "com.pdh.controllers",
     "com.pdh.repositories",
     "com.pdh.services",
-    "com.pdh.configs",
+    "com.pdh.filter",
     "com.pdh.utils",
 })
+@PropertySource("classpath:cloudinary.properties")
 public class SpringSecurityConfigs {
 
-//    @Autowired
-//    private UserDetailsService userDetailsService;
-//    @Autowired
-//    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -63,34 +61,47 @@ public class SpringSecurityConfigs {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws
             Exception {
-        http.csrf(c -> c.disable())
-            .cors(c -> c.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(requests -> requests
+        http.cors(c -> c.configurationSource(corsConfigurationSource()))
+                .csrf(c -> c.disable()).authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/secure/**").authenticated()
                 .requestMatchers("/api/**").permitAll()
                 .anyRequest().permitAll());
         return http.build();
     }
-    
+
     @Bean
-    public Cloudinary cloudinary() {
-        Cloudinary cloudinary
-                = new Cloudinary(ObjectUtils.asMap(
-                        "cloud_name", "dsfghzlat",
-                        "api_key", "784677976657694",
-                        "api_secret", "Y573YM27ykBpFzzWs7AIq2RWOtY",
-                        "secure", true));
-        return cloudinary;
+    public Cloudinary cloudinary(Environment env) {
+        String cloudName = env.getProperty("cloudinary.cloud_name");
+        String apiKey = env.getProperty("cloudinary.api_key");
+        String apiSecret = env.getProperty("cloudinary.api_secret");
+        boolean secure = Boolean.parseBoolean(env.getProperty("cloudinary.secure", "true"));
+
+        return new Cloudinary(ObjectUtils.asMap(
+                "cloud_name", cloudName,
+                "api_key", apiKey,
+                "api_secret", apiSecret,
+                "secure", secure
+        ));
+    }
+
+    @Bean
+    @Order(0)
+    public StandardServletMultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(false);
-        configuration.setAllowedOriginPatterns(List.of("*")); 
+
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

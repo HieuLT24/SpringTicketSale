@@ -5,15 +5,20 @@ const BASE_URL = "http://localhost:8080/TicketSale/api/";
 
 export const endpoints = {
     'events': 'events',
+    'eventsByCateId': (cateId) => `categories/${cateId}`,
     'categories': 'categories',
-    'eventsByCateId': (cateId) => `categories/${cateId}`
+    'eventDetail': (eventId) => `events/${eventId}`,
+    'login': 'login',
+    'register': 'register',
+    'profile': 'secure/profile'
 }
 
 export const authApis = () => {
+    const token = cookie.load('token');
     return axios.create({
         baseURL: BASE_URL,
         headers: {
-            'Authorization': `Bearer ${cookie.load('token') || ''}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
         }
     })

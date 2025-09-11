@@ -11,6 +11,7 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,23 +21,22 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Repository
 @Transactional
-public class UserRepositoryImpl implements UserRepository{
+public class UserRepositoryImpl implements UserRepository {
 
     @Autowired
     private LocalSessionFactoryBean factory;
-    
-    
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     @Override
     public User getUserByUsername(String username) {
         Session s = this.factory.getObject().getCurrentSession();
         Query q = s.createNamedQuery("User.findByUsername", User.class);
         q.setParameter("username", username);
-        
-        try {
-            return (User) q.getSingleResult();
-        } catch (Exception e) {
-            return null;
-        }
+
+        return (User) q.getSingleResult();
+
     }
 
     @Override
@@ -47,16 +47,21 @@ public class UserRepositoryImpl implements UserRepository{
     }
 
     @Override
-    public void createUser(User user) {
+    public User createUser(User user) {
         Session s = this.factory.getObject().getCurrentSession();
-        if (user.getId() != null)
+        if (user.getId() != null) {
             s.merge(user);
+        } else {
+            s.persist(user);
+        }
+        return user;
     }
 
     @Override
-    public void updateUser(User user) {
+    public User updateUser(User user) {
         Session s = this.factory.getObject().getCurrentSession();
         s.merge(user);
+        return user;
     }
 
     @Override
@@ -65,5 +70,16 @@ public class UserRepositoryImpl implements UserRepository{
         User u = s.get(User.class, id);
         s.remove(u);
     }
-    
+
+    @Override
+    public boolean authenticate(String username, String password) {
+        User u = this.getUserByUsername(username);
+        
+        if (u == null) {
+            return false;
+        }
+
+        return this.passwordEncoder.matches(password, u.getPassword());
+    }
+
 }

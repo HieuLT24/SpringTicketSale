@@ -4,6 +4,7 @@
  */
 package com.pdh.controllers;
 
+import com.pdh.services.CategoryService;
 import com.pdh.services.EventShowService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +21,20 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @CrossOrigin
-@RequestMapping("/api/categories")
+@RequestMapping("/api")
 public class ApiCategoryController {
+
     @Autowired
     private EventShowService eventService;
+
+    @Autowired
+    private CategoryService cateService;
     
+    @GetMapping("/categories")
+    public ResponseEntity<?> getCates() {
+        return ResponseEntity.ok(cateService.getCates());
+    }
+
     @GetMapping("/{cateId}")
     public ResponseEntity<?> getEventsByCateId(@PathVariable int cateId, HttpServletRequest request) {
         return ResponseEntity.ok(eventService.getEventsByCateId(cateId));

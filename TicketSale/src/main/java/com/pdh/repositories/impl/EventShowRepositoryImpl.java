@@ -5,7 +5,6 @@
 package com.pdh.repositories.impl;
 
 import com.pdh.pojo.EventShow;
-import com.pdh.pojo.User;
 import com.pdh.repositories.EventShowRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -30,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class EventShowRepositoryImpl implements EventShowRepository {
 
-    private static final int PAGE_SIZE = 8;
+    private static final int PAGE_SIZE = 9;
     @Autowired
     private LocalSessionFactoryBean factory;
 
@@ -57,17 +55,17 @@ public class EventShowRepositoryImpl implements EventShowRepository {
 
             String fromPrice = params.get("fromPrice");
             if (fromPrice != null && !fromPrice.isEmpty()) {
-                predicates.add(b.greaterThanOrEqualTo(root.get("ticket_price"), fromPrice));
+                predicates.add(b.greaterThanOrEqualTo(root.get("ticketPrice"), fromPrice));
             }
 
             String toPrice = params.get("toPrice");
             if (toPrice != null && !toPrice.isEmpty()) {
-                predicates.add(b.lessThanOrEqualTo(root.get("ticket_price"), toPrice));
+                predicates.add(b.lessThanOrEqualTo(root.get("ticketPrice"), toPrice));
             }
 
             String cateId = params.get("cateId");
             if (cateId != null && !cateId.isEmpty()) {
-                predicates.add(b.equal(root.get("categoryId").as(Integer.class), cateId));
+                predicates.add(b.equal(root.get("category").get("id").as(Integer.class), cateId));
             }
 
             query.where(predicates);
@@ -97,6 +95,7 @@ public class EventShowRepositoryImpl implements EventShowRepository {
     public EventShow getEventById(int id) {
         Session s = this.factory.getObject().getCurrentSession();
         Query q = s.createNamedQuery("EventShow.findById", EventShow.class);
+        q.setParameter("id", id);
         return (EventShow) q.getSingleResult();
     }
 

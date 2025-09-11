@@ -12,6 +12,6 @@ import java.util.List;
  * @author duchi
  */
 public interface CategoryRepository {
-    public List<Category> getCates();
-    public Category getCateById(int id);
+    List<Category> getCates();
+    Category getCateById(int id);
 }

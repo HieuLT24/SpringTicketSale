@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Badge, Alert, Spinner, Form } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { authApis, endpoints } from './configs/Apis';
+import Apis, { endpoints } from '../configs/Apis';
 
 const Home = () => {
   const [events, setEvents] = useState([]);
@@ -15,15 +15,30 @@ const Home = () => {
 
   const urlParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const categoryParam = urlParams.get('category');
+  
+  const pageParam = parseInt(urlParams.get('page') || '1');
+  const kwParam = urlParams.get('kw') || '';
+  const fromPriceParam = urlParams.get('fromPrice') || '';
+  const toPriceParam = urlParams.get('toPrice') || '';
+  
+  const [page, setPage] = useState(pageParam);
+  const [kw, setKw] = useState(kwParam);
+  const [fromPrice, setFromPrice] = useState(fromPriceParam);
+  const [toPrice, setToPrice] = useState(toPriceParam);
 
 
 
 
-  const loadEvents = async () => {
+  const loadEvents = async (pageNumber = 1) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await authApis().get(endpoints.events);
+      const params = { page: pageNumber };
+      if (categoryParam) params.cateId = categoryParam;
+      if (kwParam) params.kw = kwParam;
+      if (fromPriceParam) params.fromPrice = fromPriceParam;
+      if (toPriceParam) params.toPrice = toPriceParam;
+      const response = await Apis.get(endpoints.events, { params });
       setEvents(response.data || []);
     } catch (error) {
       setError('Không thể tải danh sách sự kiện. Vui lòng thử lại sau.');
@@ -38,46 +53,79 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    setKw(kwParam);
+    setFromPrice(fromPriceParam);
+    setToPrice(toPriceParam);
     if (categoryParam) {
       const categoryId = parseInt(categoryParam);
       setSelectedCategory(categoryId);
-      loadEventsByCategory(categoryId);
+      setPage(1);
+      loadEvents(1);
     } else {
       setSelectedCategory(null);
-      loadEvents();
+      setPage(pageParam);
+      loadEvents(pageParam);
     }
-  }, [categoryParam]);
+  }, [categoryParam, pageParam, kwParam, fromPriceParam, toPriceParam]);
 
   const loadCategories = async() => {
     try {
-      const response = await authApis().get(endpoints.categories);
+      const response = await Apis.get(endpoints.categories);
       setCategories(response.data || []);
     } catch (error) {
       setCategories([]);
     }
   }
 
-  const loadEventsByCategory = async (categoryId) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await authApis().get(endpoints.eventsByCateId(categoryId)); 
-      setEvents(response.data);
-    } catch (error) {
-      setError('Không thể tải sự kiện theo danh mục. Vui lòng thử lại sau.');
-      setEvents([]);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const handleCategoryClick = (categoryId) => {
-    navigate(`/?category=${categoryId}`);
+    const qs = new URLSearchParams();
+    if (categoryId) qs.set('category', categoryId);
+    if (kw) qs.set('kw', kw);
+    if (fromPrice) qs.set('fromPrice', fromPrice);
+    if (toPrice) qs.set('toPrice', toPrice);
+    qs.set('page', '1');
+    navigate(`/?${qs.toString()}`);
   };
 
   const handleShowAllEvents = () => {
+    const qs = new URLSearchParams();
+    if (kw) qs.set('kw', kw);
+    if (fromPrice) qs.set('fromPrice', fromPrice);
+    if (toPrice) qs.set('toPrice', toPrice);
+    qs.set('page', '1');
+    navigate(qs.toString() ? `/?${qs.toString()}` : '/');
+  }
+
+  const applyFilters = (e) => {
+    e.preventDefault();
+    const qs = new URLSearchParams();
+    if (selectedCategory) qs.set('category', selectedCategory);
+    if (kw) qs.set('kw', kw);
+    if (fromPrice) qs.set('fromPrice', fromPrice);
+    if (toPrice) qs.set('toPrice', toPrice);
+    qs.set('page', '1');
+    navigate(`/?${qs.toString()}`);
+  }
+
+  const resetFilters = () => {
+    setKw('');
+    setFromPrice('');
+    setToPrice('');
+    setSelectedCategory(null);
     navigate('/');
   }
+
+  const handlePageChange = (nextPage) => {
+    if (nextPage < 1) return;
+    const qs = new URLSearchParams();
+    if (selectedCategory) qs.set('category', selectedCategory);
+    if (kwParam) qs.set('kw', kwParam);
+    if (fromPriceParam) qs.set('fromPrice', fromPriceParam);
+    if (toPriceParam) qs.set('toPrice', toPriceParam);
+    qs.set('page', String(nextPage));
+    navigate(`/?${qs.toString()}`);
+  };
 
   return (
     <main>
@@ -101,7 +149,7 @@ const Home = () => {
             </Col>
             <Col lg={6} className="text-center">
               <div className="bg-light rounded p-4" style={{minHeight: "300px"}}>
-                <h3 className="text-dark">🎭 Sự kiện nổi bật</h3>
+                <h3 className="text-dark">Sự kiện nổi bật</h3>
                 <p className="text-muted">Hình ảnh banner sự kiện sẽ hiển thị ở đây</p>
               </div>
             </Col>
@@ -111,6 +159,57 @@ const Home = () => {
 
       <section className="py-5">
         <Container>
+          <Row className="mb-4">
+            <Col>
+              <Form onSubmit={applyFilters} className="bg-light p-3 rounded shadow-sm">
+                <Row className="g-3 align-items-end">
+                  <Col lg={4} md={6}>
+                    <Form.Label>Tên sự kiện</Form.Label>
+                    <Form.Control 
+                      type="text" 
+                      placeholder="Nhập tên sự kiện..." 
+                      value={kw}
+                      onChange={(e) => setKw(e.target.value)}
+                    />
+                  </Col>
+                  <Col lg={3} md={6}>
+                    <Form.Label>Danh mục</Form.Label>
+                    <Form.Select 
+                      value={selectedCategory || ''}
+                      onChange={(e) => setSelectedCategory(e.target.value ? parseInt(e.target.value) : null)}
+                    >
+                      <option value="">Tất cả</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </Form.Select>
+                  </Col>
+                  <Col lg={2} md={6}>
+                    <Form.Label>Giá từ</Form.Label>
+                    <Form.Control 
+                      type="number" 
+                      min="0"
+                      value={fromPrice}
+                      onChange={(e) => setFromPrice(e.target.value)}
+                    />
+                  </Col>
+                  <Col lg={2} md={6}>
+                    <Form.Label>đến</Form.Label>
+                    <Form.Control 
+                      type="number" 
+                      min="0"
+                      value={toPrice}
+                      onChange={(e) => setToPrice(e.target.value)}
+                    />
+                  </Col>
+                  <Col lg={1} className="d-flex gap-2">
+                    <Button type="submit" variant="primary" className="flex-fill">Lọc</Button>
+                    <Button type="button" variant="outline-secondary" onClick={resetFilters} className="flex-fill">Xóa</Button>
+                  </Col>
+                </Row>
+              </Form>
+            </Col>
+          </Row>
           <Row className="mb-5">
             <Col>
               <h2 className="text-center fw-bold mb-3">
@@ -172,7 +271,11 @@ const Home = () => {
                           </p>
                         </div>
                         <div className="mt-auto">
-                          <Button variant="primary" className="w-100">
+                          <Button 
+                            variant="primary" 
+                            className="w-100"
+                            onClick={() => navigate(`/events/${event.id}`)}
+                          >
                             Đặt vé ngay
                           </Button>
                         </div>
@@ -188,6 +291,27 @@ const Home = () => {
                   </Alert>
                 </Col>
               )}
+            </Row>
+          )}
+          {!loading && !error && !selectedCategory && (
+            <Row className="mt-4">
+              <Col className="d-flex justify-content-center align-items-center gap-2">
+                <Button 
+                  variant="outline-primary" 
+                  disabled={page <= 1}
+                  onClick={() => handlePageChange(page - 1)}
+                >
+                  ← Trang trước
+                </Button>
+                <span>Trang {page}</span>
+                <Button 
+                  variant="primary" 
+                  disabled={events.length < 9}
+                  onClick={() => handlePageChange(page + 1)}
+                >
+                  Trang sau →
+                </Button>
+              </Col>
             </Row>
           )}
         </Container>

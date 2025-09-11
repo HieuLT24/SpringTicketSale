@@ -27,11 +27,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
     "com.pdh.repositories",
     "com.pdh.services",
     "com.pdh.configs",
-    "com.pdh.utils",
-    
 })
 @EnableTransactionManagement
-public class WebAppContextConfigs implements WebMvcConfigurer{
+public class WebAppContextConfigs implements WebMvcConfigurer {
 
     @Override
     public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
@@ -44,14 +42,14 @@ public class WebAppContextConfigs implements WebMvcConfigurer{
         registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
     }
-    
+
     @Bean
     public StandardServletMultipartResolver multipartResolver() {
         return new StandardServletMultipartResolver();
     }
-    
+
     @Override
-    public void addFormatters(FormatterRegistry registry){
+    public void addFormatters(FormatterRegistry registry) {
         registry.addFormatter(new CategoryFormatter());
     }
 }

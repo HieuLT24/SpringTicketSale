@@ -55,13 +55,13 @@
             <artifactId>cloudinary-http44</artifactId>
             <version>1.39.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-web -->
+
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
             <version>6.5.3</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-config -->
+
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
@@ -85,7 +85,7 @@
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt-jackson</artifactId> <!-- hoặc jjwt-gson nếu thích -->
+            <artifactId>jjwt-jackson</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.15.2</version> <!-- hoặc mới hơn -->
+            <version>2.15.2</version>
         </dependency>
 
         <dependency>
@@ -114,7 +114,12 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20240303</version> <!-- bản mới nhất -->
+            <version>20240303</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>10.1</version>
         </dependency>
     </dependencies>
     

@@ -1,24 +1,33 @@
-import React from 'react';
+import React, { useReducer, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Header from './components/layout/Header';
 import Home from './components/Home';
-import Categories from './components/Categories';
+import EventDetail from './components/EventDetail';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
 import Footer from './components/layout/Footer';
+import { MyUserContext } from './configs/MyContexts';
+import { MyUserReducer } from './reducers/MyUserReducer';
 
 function App() {
-  console.log("App component mounted");
+  const [user, dispatch] = useReducer(MyUserReducer, null);
+
   return (
-    <Router>
-      <div className="App">
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/categories" element={<Categories />} />
-        </Routes>
-        <Footer />
-      </div>
-    </Router>
+    <MyUserContext.Provider value={[user, dispatch]}>
+      <Router>
+        <div className="App">
+          <Header />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/events/:eventId" element={<EventDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Routes>
+          <Footer />
+        </div>
+      </Router>
+    </MyUserContext.Provider>
   );
 }
 

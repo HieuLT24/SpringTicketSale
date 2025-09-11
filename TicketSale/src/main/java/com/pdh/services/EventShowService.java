@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
  * @author duchi
  */
 public interface EventShowService {
-    public List<EventShow> getAllEvent(Map<String, String> params);
-    public EventShow getEventById(int id);
-    public List<EventShow> getEventsByCateId(int id);
+    List<EventShow> getAllEvent(Map<String, String> params);
+    EventShow getEventById(int id);
+    List<EventShow> getEventsByCateId(int id);
 
 }
