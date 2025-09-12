@@ -40,8 +40,7 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
     "com.pdh.repositories",
     "com.pdh.services",
     "com.pdh.filter",
-    "com.pdh.utils",
-})
+    "com.pdh.utils",})
 @PropertySource("classpath:cloudinary.properties")
 public class SpringSecurityConfigs {
 
@@ -64,6 +63,7 @@ public class SpringSecurityConfigs {
         http.cors(c -> c.configurationSource(corsConfigurationSource()))
                 .csrf(c -> c.disable()).authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/secure/payment/callback/momo/redirect").permitAll()
                 .requestMatchers("/api/secure/**").authenticated()
                 .requestMatchers("/api/**").permitAll()
                 .anyRequest().permitAll());
@@ -98,9 +98,10 @@ public class SpringSecurityConfigs {
 
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
         configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

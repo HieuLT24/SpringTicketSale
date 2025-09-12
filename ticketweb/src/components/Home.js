@@ -147,12 +147,7 @@ const Home = () => {
                 Tìm hiểu thêm
               </Button>
             </Col>
-            <Col lg={6} className="text-center">
-              <div className="bg-light rounded p-4" style={{minHeight: "300px"}}>
-                <h3 className="text-dark">Sự kiện nổi bật</h3>
-                <p className="text-muted">Hình ảnh banner sự kiện sẽ hiển thị ở đây</p>
-              </div>
-            </Col>
+            
           </Row>
         </Container>
       </section>
@@ -252,7 +247,8 @@ const Home = () => {
                       <Card.Img 
                         variant="top" 
                         src={event.image} 
-                        alt={event.name} 
+                        alt={event.name}
+                        style={{ height: '220px', objectFit: 'cover', width: '100%' }}
                       />
                       <Card.Body className="d-flex flex-column">
                         <div className="mb-2">
@@ -276,7 +272,7 @@ const Home = () => {
                             className="w-100"
                             onClick={() => navigate(`/events/${event.id}`)}
                           >
-                            Đặt vé ngay
+                            Xem chi tiết
                           </Button>
                         </div>
                       </Card.Body>

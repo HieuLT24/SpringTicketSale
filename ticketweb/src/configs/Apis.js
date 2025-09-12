@@ -12,7 +12,12 @@ export const endpoints = {
     'register': 'register',
     'profile': 'secure/profile',
     'updateProfile': 'secure/profile',
-    'changePassword': 'secure/password'
+    'changePassword': 'secure/password',
+    'paymentProcess': 'secure/payment/process',
+    'availableTickets': (eventId) => `${eventId}/tickets`,
+    'paymentDetail': (paymentId) => `secure/payment/${paymentId}`,
+    'myPayments': 'secure/payment/my',
+    'myTickets': 'secure/payment/my/tickets'
 }
 
 export const authApis = () => {

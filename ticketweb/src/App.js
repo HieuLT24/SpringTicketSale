@@ -7,6 +7,9 @@ import EventDetail from './components/EventDetail';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import UserProfile from './components/UserProfile';
+import PaymentResult from './components/PaymentResult';
+import PaymentsPage from './components/PaymentsPage';
+import MyTicketsPage from './components/MyTicketsPage';
 import Footer from './components/layout/Footer';
 import { MyUserContext } from './configs/MyContexts';
 import { MyUserReducer } from './reducers/MyUserReducer';
@@ -40,9 +43,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/events/:eventId" element={<EventDetail />} />
+            <Route path="/payment/result" element={<PaymentResult />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/secure/profile" element={<UserProfile />} />
+            <Route path="/secure/payments" element={<PaymentsPage />} />
+            <Route path="/secure/tickets" element={<MyTicketsPage />} />
           </Routes>
 
           <Footer />

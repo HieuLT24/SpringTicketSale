@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Alert, Spinner, Modal } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
-import { authApis, endpoints } from '../configs/Apis';
+import Apis, { authApis, endpoints}   from '../configs/Apis';
 
 const EventDetail = () => {
   const { eventId } = useParams();
@@ -11,6 +11,11 @@ const EventDetail = () => {
   const [error, setError] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [ticketQuantity, setTicketQuantity] = useState(1);
+  const [paying, setPaying] = useState(false);
+  const [availableTickets, setAvailableTickets] = useState([]);
+  const [selectedTickets, setSelectedTickets] = useState([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('MOMO');
 
   useEffect(() => {
     loadEventDetail();
@@ -30,13 +35,60 @@ const EventDetail = () => {
     }
   };
 
+  const loadAvailableTickets = async () => {
+    try {
+      setLoadingTickets(true);
+      const response = await Apis.get(endpoints.availableTickets(eventId));
+      setAvailableTickets(response.data || []);
+    } catch (error) {
+      console.error('Error loading available tickets:', error);
+    } finally {
+      setLoadingTickets(false);
+    }
+  };
+
   const handleBookTicket = () => {
+    loadAvailableTickets();
     setShowBookingModal(true);
   };
 
-  const handleConfirmBooking = () => {
-    alert(`Đã đặt ${ticketQuantity} vé cho sự kiện "${event?.name}"`);
-    setShowBookingModal(false);
+  const handleTicketSelect = (ticketId) => {
+    setSelectedTickets(prev => {
+      if (prev.includes(ticketId)) {
+        return prev.filter(id => id !== ticketId);
+      } else {
+        return [...prev, ticketId];
+      }
+    });
+  };
+
+  const handleConfirmBooking = async () => {
+    if (selectedTickets.length === 0) {
+      alert('Vui lòng chọn ít nhất một vé');
+      return;
+    }
+    
+    try {
+      setPaying(true);
+      const totalAmount = (event?.ticketPrice || 0) * selectedTickets.length;
+      const res = await authApis().post(endpoints.paymentProcess, {
+        eventId: event?.id,
+        ticketIds: selectedTickets,
+        paymentMethod,
+        totalAmount
+      });
+      const { paymentUrl } = res.data || {};
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        alert('Không tạo được liên kết thanh toán');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Có lỗi khi tạo thanh toán');
+    } finally {
+      setPaying(false);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -262,42 +314,82 @@ const EventDetail = () => {
               </Card>
             </Col>
             <Col md={6}>
-              <h5 className="mb-3">Thông tin đặt vé</h5>
-              <div className="mb-3">
-                <label className="form-label">Số lượng vé</label>
-                <div className="input-group">
-                  <Button 
-                    variant="outline-secondary" 
-                    onClick={() => setTicketQuantity(Math.max(1, ticketQuantity - 1))}
-                  >
-                    -
-                  </Button>
-                  <input 
-                    type="number" 
-                    className="form-control text-center" 
-                    value={ticketQuantity}
-                    onChange={(e) => setTicketQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    min="1"
-                  />
-                  <Button 
-                    variant="outline-secondary" 
-                    onClick={() => setTicketQuantity(ticketQuantity + 1)}
-                  >
-                    +
-                  </Button>
+              <h5 className="mb-3">Chọn ghế</h5>
+              
+              {loadingTickets ? (
+                <div className="text-center py-4">
+                  <Spinner animation="border" variant="primary" />
+                  <p className="mt-2">Đang tải danh sách ghế...</p>
                 </div>
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Giá mỗi vé</label>
-                <p className="fw-bold text-primary fs-5">{formatPrice(event.ticketPrice)}</p>
-              </div>
-              <hr />
-              <div className="d-flex justify-content-between">
-                <span className="fw-bold">Tổng cộng:</span>
-                <span className="fw-bold text-success fs-5">
-                  {formatPrice(event.ticketPrice * ticketQuantity)}
-                </span>
-              </div>
+              ) : availableTickets.length === 0 ? (
+                <Alert variant="warning">
+                  Không có ghế trống nào cho sự kiện này
+                </Alert>
+              ) : (
+                <>
+                  <div className="mb-3">
+                    <p className="text-muted mb-2">
+                      Có {availableTickets.length} ghế trống. Chọn ghế bạn muốn:
+                    </p>
+                    <div className="row g-2" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                      {availableTickets.map((ticket) => (
+                        <div key={ticket.id} className="col-3">
+                          <Button
+                            variant={selectedTickets.includes(ticket.id) ? "primary" : "outline-primary"}
+                            size="sm"
+                            className="w-100"
+                            onClick={() => handleTicketSelect(ticket.id)}
+                          >
+                            {ticket.seatNumber || `Ghế ${ticket.id}`}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">Ghế đã chọn: {selectedTickets.length}</label>
+                    <p className="text-muted small">
+                      {selectedTickets.length > 0 
+                        ? `Đã chọn ${selectedTickets.length} ghế` 
+                        : 'Chưa chọn ghế nào'}
+                    </p>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">Giá mỗi vé</label>
+                    <p className="fw-bold text-primary fs-5">{formatPrice(event.ticketPrice)}</p>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label className="form-label">Phương thức thanh toán</label>
+                    <div className="d-flex gap-3">
+                      <div className="form-check">
+                        <input className="form-check-input" type="radio" name="paymentMethod" id="pmMomo" value="MOMO"
+                          checked={paymentMethod === 'MOMO'} onChange={(e) => setPaymentMethod(e.target.value)} />
+                        <label className="form-check-label" htmlFor="pmMomo">
+                          MoMo
+                        </label>
+                      </div>
+                      <div className="form-check">
+                        <input className="form-check-input" type="radio" name="paymentMethod" id="pmVnpay" value="VNPAY"
+                          checked={paymentMethod === 'VNPAY'} onChange={(e) => setPaymentMethod(e.target.value)} />
+                        <label className="form-check-label" htmlFor="pmVnpay">
+                          VNPay
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <hr />
+                  <div className="d-flex justify-content-between">
+                    <span className="fw-bold">Tổng cộng:</span>
+                    <span className="fw-bold text-success fs-5">
+                      {formatPrice(event.ticketPrice * selectedTickets.length)}
+                    </span>
+                  </div>
+                </>
+              )}
             </Col>
           </Row>
         </Modal.Body>
@@ -305,8 +397,12 @@ const EventDetail = () => {
           <Button variant="secondary" onClick={() => setShowBookingModal(false)}>
             Hủy
           </Button>
-          <Button variant="primary" onClick={handleConfirmBooking}>
-            Xác nhận đặt vé
+          <Button 
+            variant="primary" 
+            onClick={handleConfirmBooking} 
+            disabled={paying || selectedTickets.length === 0}
+          >
+            {paying ? `Đang chuyển đến ${paymentMethod}...` : `Thanh toán ${paymentMethod} (${selectedTickets.length} vé)`}
           </Button>
         </Modal.Footer>
       </Modal>

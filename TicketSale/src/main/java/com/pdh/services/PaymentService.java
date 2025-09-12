@@ -2,16 +2,21 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
-package com.pdh.repositories;
+package com.pdh.services;
+
+import java.util.List;
 
 import com.pdh.pojo.Payment;
-import java.util.List;
+
 
 /**
  *
  * @author duchi
  */
-public interface PaymentRepository {
+
+public interface PaymentService {
+    
+    Payment processPayment(Payment payment);
 
     Payment createPayment(Payment payment);
 
@@ -19,9 +24,13 @@ public interface PaymentRepository {
 
     Payment getPaymentById(int id);
 
-    List<Payment> getPaymentsByStatus(String status);
+    Payment getPaymentByTransactionId(String transactionId);
 
-    Payment getPaymentByTransactionCode(String transactionCode);
+    boolean verifyPayment(String transactionId);
+
+    String createMoMoPaymentUrl(int paymentId, Double amount);
+
+    String createVNPayPaymentUrl(int paymentId, Double amount);
 
     List<Payment> getPaymentsByUserId(int userId);
 

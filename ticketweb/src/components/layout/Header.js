@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Navbar, Nav, Container, Dropdown, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { MyUserContext } from '../../configs/MyContexts';
@@ -82,8 +82,12 @@ const Header = () => {
                     <i className="fas fa-user-circle me-2 text-primary"></i>
                     Thông tin cá nhân
                   </Dropdown.Item>
-                  <Dropdown.Item as={Link} to="/my-events" className="py-2">
+                  <Dropdown.Item as={Link} to="/secure/payments" className="py-2">
                     <i className="fas fa-ticket-alt me-2 text-success"></i>
+                    Đơn thanh toán
+                  </Dropdown.Item>
+                  <Dropdown.Item as={Link} to="/secure/tickets" className="py-2">
+                    <i className="fas fa-list me-2 text-warning"></i>
                     Vé của tôi
                   </Dropdown.Item>
                   <Dropdown.Divider />

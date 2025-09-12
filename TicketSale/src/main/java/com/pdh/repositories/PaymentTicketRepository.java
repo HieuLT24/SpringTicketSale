@@ -4,10 +4,12 @@
  */
 package com.pdh.repositories;
 
+import com.pdh.pojo.PaymentTicket;
+
 /**
  *
  * @author duchi
  */
 public interface PaymentTicketRepository {
-    
+    void addPaymentTicket(PaymentTicket paymentTicket);
 }

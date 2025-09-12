@@ -30,7 +30,14 @@ public class JwtFilter implements Filter {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
 
-        if (httpRequest.getRequestURI().startsWith(String.format("%s/api/secure", httpRequest.getContextPath())) == true) {
+        String uri = httpRequest.getRequestURI();
+        String ctx = httpRequest.getContextPath();
+        if (uri.startsWith(ctx + "/api/secure/payment/callback")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        if (uri.startsWith(String.format("%s/api/secure", ctx)) == true) {
 
             String header = httpRequest.getHeader("Authorization");
 

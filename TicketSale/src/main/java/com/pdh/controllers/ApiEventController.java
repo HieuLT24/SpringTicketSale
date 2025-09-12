@@ -34,7 +34,7 @@ public class ApiEventController {
     }
 
     @GetMapping("/events/{eventId}")
-    public ResponseEntity<?> getEventById(@PathVariable int eventId, HttpServletRequest request) {
+    public ResponseEntity<?> getEventById(@PathVariable(name = "eventId") int eventId, HttpServletRequest request) {
         return ResponseEntity.ok(this.eventService.getEventById(eventId));
     }
 }
