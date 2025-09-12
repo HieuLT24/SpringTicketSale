@@ -18,6 +18,9 @@ const UserProfile = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const [showOrganizerForm, setShowOrganizerForm] = useState(false);
+  const [hasOrganizerRequest, setHasOrganizerRequest] = useState(false);
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -27,6 +30,15 @@ const UserProfile = () => {
         setFullname(res.data.fullname || '');
         setEmail(res.data.email || '');
         dispatch({ type: 'login', payload: res.data });
+        
+        if (res.data.role !== 'ORGANIZER') {
+          try {
+            const requestStatusRes = await authApis().get(endpoints.organizerRequestStatus);
+            setHasOrganizerRequest(requestStatusRes.data.hasRequest);
+          } catch (e) {
+            console.log('Không thể kiểm tra trạng thái yêu cầu:', e);
+          }
+        }
       } catch (e) {
         setError('Không thể tải thông tin cá nhân');
       } finally {
@@ -79,6 +91,20 @@ const UserProfile = () => {
       setConfirmPassword('');
     } catch (e) {
       setError('Đổi mật khẩu thất bại');
+    }
+  };
+
+  const onRequestOrganizer = async (e) => {
+    e.preventDefault();
+    try {
+      setError('');
+      setSuccess('');
+      await authApis().post(endpoints.organizerRequest, {});
+      setSuccess('Yêu cầu đăng ký làm nhà tổ chức đã được gửi thành công');
+      setHasOrganizerRequest(true);
+      setShowOrganizerForm(false);
+    } catch (e) {
+      setError(e.response?.data || 'Gửi yêu cầu thất bại');
     }
   };
 
@@ -148,6 +174,51 @@ const UserProfile = () => {
                   </Form.Group>
                   <Button type="submit" variant="warning">Đổi mật khẩu</Button>
                 </Form>
+
+                <hr />
+
+                <h5 className="mb-3">Đăng ký làm Nhà tổ chức</h5>
+                {user?.role !== 'ORGANIZER' && (
+                  <>
+                    {hasOrganizerRequest ? (
+                      <Alert variant="warning">
+                        Bạn đã gửi yêu cầu đăng ký làm nhà tổ chức. Vui lòng chờ phản hồi từ quản trị viên.
+                      </Alert>
+                    ) : (
+                      <>
+                        {!showOrganizerForm ? (
+                          <Button 
+                            variant="success" 
+                            onClick={() => setShowOrganizerForm(true)}
+                            className="mb-3"
+                          >
+                            Yêu cầu đăng ký làm Nhà tổ chức
+                          </Button>
+                        ) : (
+                          <Form onSubmit={onRequestOrganizer}>
+                            <div className="d-flex gap-2">
+                              <Button type="submit" variant="success">Gửi yêu cầu</Button>
+                              <Button 
+                                type="button" 
+                                variant="secondary" 
+                                onClick={() => {
+                                  setShowOrganizerForm(false);
+                                }}
+                              >
+                                Hủy
+                              </Button>
+                            </div>
+                          </Form>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+                {user?.role === 'ORGANIZER' && (
+                  <Alert variant="info">
+                    Bạn đã là nhà tổ chức sự kiện
+                  </Alert>
+                )}
               </Card.Body>
             </Card>
           </Col>

@@ -24,5 +24,8 @@ public interface PaymentRepository {
     Payment getPaymentByTransactionCode(String transactionCode);
 
     List<Payment> getPaymentsByUserId(int userId);
+    
+    double getTotalRevenue();
+    long getTotalPayments();
 
 }

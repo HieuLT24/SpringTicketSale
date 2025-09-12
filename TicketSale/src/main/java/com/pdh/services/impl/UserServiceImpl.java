@@ -71,6 +71,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getUsers() {
+        return this.userRepo.getUsers();
+    }
+
+    @Override
+    public User getUserById(Integer id) {
+        return this.userRepo.getUserById(id);
+    }
+
+    @Override
+    public void updateUser(User user) {
+        this.userRepo.updateUser(user);
+    }
+
+    @Override
     public User getUserByUsername(String username) {
         return this.userRepo.getUserByUsername(username);
     }
@@ -101,7 +116,7 @@ public class UserServiceImpl implements UserService {
 
         if (avatar != null && !avatar.isEmpty()) {
             try {
-                Map res = cloudinary.uploader().upload(avatar.getBytes(), ObjectUtils.asMap("resource_type", "auto", "folder", "user_avatar"));
+                Map<?, ?> res = cloudinary.uploader().upload(avatar.getBytes(), ObjectUtils.asMap("resource_type", "auto", "folder", "user_avatar"));
                 u.setAvatar(res.get("secure_url").toString());
             } catch (IOException ex) {
                 System.err.println("Error uploading avatar: " + ex.getMessage());

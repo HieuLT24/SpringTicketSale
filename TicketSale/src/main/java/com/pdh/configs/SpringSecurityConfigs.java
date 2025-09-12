@@ -64,9 +64,20 @@ public class SpringSecurityConfigs {
                 .csrf(c -> c.disable()).authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/secure/payment/callback/momo/redirect").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/secure/**").authenticated()
                 .requestMatchers("/api/**").permitAll()
-                .anyRequest().permitAll());
+                .anyRequest().permitAll())
+                .formLogin(form -> form
+                    .loginProcessingUrl("/admin/login")   
+                    .loginPage("/admin/login")
+                    .defaultSuccessUrl("/admin/dashboard", true)
+                    .failureUrl("/admin/login?error=true")
+                    .permitAll())
+                .logout(logout -> logout
+                    .logoutUrl("/admin/logout")
+                    .logoutSuccessUrl("/admin/login?logout=true")
+                    .permitAll());
         return http.build();
     }
 

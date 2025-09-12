@@ -8,5 +8,6 @@
     <class>com.pdh.pojo.Ticket</class>
     <class>com.pdh.pojo.EventShow</class>
     <class>com.pdh.pojo.Payment</class>
+    <class>com.pdh.pojo.UpdateRequest</class>
   </persistence-unit>
 </persistence>

@@ -18,10 +18,12 @@ public interface UserService extends UserDetailsService{
 
     User createUser(Map<String, String> params, MultipartFile avatar);
     List<User> getListUsers();
+    List<User> getUsers();
     User getUserByUsername(String username);
+    User getUserById(Integer id);
     void updateUser(String username, String fullname, String email, MultipartFile avatar);
+    void updateUser(User user);
     void deleteUserById(int id);
     boolean authenticate(String username, String password);
-
     boolean changePassword(String username, String oldPassword, String newPassword);
 }

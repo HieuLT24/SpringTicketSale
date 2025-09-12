@@ -65,5 +65,32 @@ public class TicketRepositoryImpl implements TicketRepository {
         q.where(b.equal(root.get("userId").get("id"), userId));
         return s.createQuery(q).getResultList();
     }
+
+    @Override
+    public long getTotalSoldTickets() {
+        Session s = this.factory.getObject().getCurrentSession();
+        CriteriaBuilder b = s.getCriteriaBuilder();
+        CriteriaQuery<Long> q = b.createQuery(Long.class);
+        Root<Ticket> root = q.from(Ticket.class);
+        q.select(b.count(root));
+        q.where(b.equal(root.get("status"), "SOLD"));
+        return s.createQuery(q).getSingleResult();
+    }
+
+    @Override
+    public long getSoldTicketsByEventId(int eventId) {
+        Session s = this.factory.getObject().getCurrentSession();
+        CriteriaBuilder b = s.getCriteriaBuilder();
+        CriteriaQuery<Long> q = b.createQuery(Long.class);
+        Root<Ticket> root = q.from(Ticket.class);
+        q.select(b.count(root));
+        q.where(b.and(
+            b.equal(root.get("status"), "SOLD"),
+            b.equal(root.get("eventShowId").get("id"), eventId)
+        ));
+        return s.createQuery(q).getSingleResult();
+    }
+
+
     
 }

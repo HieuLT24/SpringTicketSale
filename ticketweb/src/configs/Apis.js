@@ -17,7 +17,9 @@ export const endpoints = {
     'availableTickets': (eventId) => `${eventId}/tickets`,
     'paymentDetail': (paymentId) => `secure/payment/${paymentId}`,
     'myPayments': 'secure/payment/my',
-    'myTickets': 'secure/payment/my/tickets'
+    'myTickets': 'secure/payment/my/tickets',
+    'organizerRequest': 'secure/organizer-request',
+    'organizerRequestStatus': 'secure/organizer-request-status'
 }
 
 export const authApis = () => {

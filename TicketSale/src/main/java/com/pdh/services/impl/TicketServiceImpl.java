@@ -36,4 +36,15 @@ public class TicketServiceImpl implements TicketService {
     public List<Ticket> getTicketsByUserId(int userId) {
         return this.ticketRepo.getTicketsByUserId(userId);
     }
+
+    @Override
+    public long getTotalSoldTickets() {
+        return this.ticketRepo.getTotalSoldTickets();
+    }
+
+    @Override
+    public long getSoldTicketsByEventId(int eventId) {
+        return this.ticketRepo.getSoldTicketsByEventId(eventId);
+    }
+
 }

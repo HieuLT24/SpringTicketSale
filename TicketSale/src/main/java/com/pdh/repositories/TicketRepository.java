@@ -18,4 +18,7 @@ public interface TicketRepository {
     Ticket getTicketById(int id);
     void updateTicket(Ticket ticket);
     List<Ticket> getTicketsByUserId(int userId);
+    long getTotalSoldTickets();
+    long getSoldTicketsByEventId(int eventId);
+
 }

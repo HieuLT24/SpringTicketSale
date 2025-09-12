@@ -32,7 +32,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User getUserByUsername(String username) {
         Session s = this.factory.getObject().getCurrentSession();
-        Query q = s.createNamedQuery("User.findByUsername", User.class);
+        Query<User> q = s.createNamedQuery("User.findByUsername", User.class);
         q.setParameter("username", username);
 
         return (User) q.getSingleResult();
@@ -40,9 +40,22 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public User getUserById(Integer id) {
+        Session s = this.factory.getObject().getCurrentSession();
+        return s.find(User.class, id);
+    }
+
+    @Override
+    public List<User> getUsers() {
+        Session s = this.factory.getObject().getCurrentSession();
+        Query<User> q = s.createNamedQuery("User.findAll", User.class);
+        return q.getResultList();
+    }
+
+    @Override
     public List<User> getListUsers() {
         Session s = this.factory.getObject().getCurrentSession();
-        Query q = s.createNamedQuery("User.findAll", User.class);
+        Query<User> q = s.createNamedQuery("User.findAll", User.class);
         return q.getResultList();
     }
 
@@ -66,7 +79,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public void deleteUserById(int id) {
         Session s = this.factory.getObject().getCurrentSession();
-        User u = s.get(User.class, id);
+        User u = s.find(User.class, id);
         s.remove(u);
     }
 

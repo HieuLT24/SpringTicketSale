@@ -4,13 +4,18 @@
  */
 package com.pdh.controllers;
 
+import com.pdh.pojo.UpdateRequest;
 import com.pdh.pojo.User;
 import com.pdh.services.UserService;
+import com.pdh.services.UpdateRequestService;
 import com.pdh.utils.JwtUtils;
 import java.security.Principal;
+import java.time.LocalDateTime;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,6 +42,8 @@ public class ApiUserController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private UpdateRequestService updateRequestService;
     @Autowired
     private JwtUtils jwtUtils;
 
@@ -126,5 +133,61 @@ public class ApiUserController {
         boolean ok = this.userService.changePassword(username, oldPassword, newPassword);
         if (!ok) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Mật khẩu hiện tại không đúng");
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/secure/organizer-request")
+    public ResponseEntity<?> requestOrganizerRole(Principal principal, HttpServletRequest request, @RequestBody Map<String, String> body) {
+        String username = null;
+        if (principal != null) {
+            username = principal.getName();
+        } else if (SecurityContextHolder.getContext() != null && SecurityContextHolder.getContext().getAuthentication() != null) {
+            username = SecurityContextHolder.getContext().getAuthentication().getName();
+        } else if (request.getAttribute("username") != null) {
+            username = String.valueOf(request.getAttribute("username"));
+        }
+
+        User user = this.userService.getUserByUsername(username);
+
+        if ("ORGANIZER".equals(user.getRole())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bạn đã là nhà tổ chức");
+        }
+
+        List<UpdateRequest> existingRequests = this.updateRequestService.getUpdateRequestsByUser(user);
+        if (!existingRequests.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bạn đã gửi yêu cầu đăng ký làm nhà tổ chức rồi");
+        }
+
+        UpdateRequest newUpdateRequest = new UpdateRequest();
+        newUpdateRequest.setUserId(user);
+        newUpdateRequest.setStatus("PENDING");
+        newUpdateRequest.setRequestDate(LocalDateTime.now());
+        boolean success = this.updateRequestService.addUpdateRequest(newUpdateRequest);
+
+        if (success) {
+            return ResponseEntity.ok().body(Collections.singletonMap("message", "Yêu cầu đăng ký làm nhà tổ chức đã được gửi thành công"));
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Có lỗi xảy ra khi gửi yêu cầu");
+        }
+    }
+
+    @GetMapping("/secure/organizer-request-status")
+    public ResponseEntity<?> getOrganizerRequestStatus(Principal principal, HttpServletRequest request) {
+        String username = null;
+        if (principal != null) {
+            username = principal.getName();
+        } else if (SecurityContextHolder.getContext() != null && SecurityContextHolder.getContext().getAuthentication() != null) {
+            username = SecurityContextHolder.getContext().getAuthentication().getName();
+        } else if (request.getAttribute("username") != null) {
+            username = String.valueOf(request.getAttribute("username"));
+        }
+
+        User user = this.userService.getUserByUsername(username);
+        List<UpdateRequest> existingRequests = this.updateRequestService.getUpdateRequestsByUser(user);
+        
+        if (existingRequests.isEmpty()) {
+            return ResponseEntity.ok().body(Collections.singletonMap("hasRequest", false));
+        } else {
+            return ResponseEntity.ok().body(Collections.singletonMap("hasRequest", true));
+        }
     }
 }

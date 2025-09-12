@@ -16,4 +16,6 @@ public interface EventShowRepository {
     List<EventShow> getAllEvent(Map<String, String> params); 
     EventShow getEventById(int id);
     List<EventShow> getEventsByCateId(int id);
+    long getTotalEvents();
+
 }

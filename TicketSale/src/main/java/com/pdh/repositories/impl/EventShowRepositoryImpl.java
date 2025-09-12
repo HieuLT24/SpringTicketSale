@@ -111,4 +111,12 @@ public class EventShowRepositoryImpl implements EventShowRepository {
         
         return s.createQuery(q).getResultList();
     }
+
+    @Override
+    public long getTotalEvents() {
+        Session s = this.factory.getObject().getCurrentSession();
+        Query<Long> q = s.createQuery("SELECT COUNT(e) FROM EventShow e", Long.class);
+        return q.getSingleResult();
+    }
+
 }

@@ -33,5 +33,8 @@ public interface PaymentService {
     String createVNPayPaymentUrl(int paymentId, Double amount);
 
     List<Payment> getPaymentsByUserId(int userId);
+    
+    double getTotalRevenue();
+    long getTotalPayments();
 
 }

@@ -82,5 +82,28 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         q.orderBy(b.desc(root.get("createdAt")));
         return session.createQuery(q).getResultList();
     }
+
+    @Override
+    public double getTotalRevenue() {
+        Session session = this.factory.getObject().getCurrentSession();
+        CriteriaBuilder b = session.getCriteriaBuilder();
+        CriteriaQuery<Double> q = b.createQuery(Double.class);
+        Root<Payment> root = q.from(Payment.class);
+        q.select(b.sum(root.get("totalAmount")));
+        q.where(b.equal(root.get("status"), "SUCCESS"));
+        Double result = session.createQuery(q).getSingleResult();
+        return result != null ? result : 0.0;
+    }
+
+    @Override
+    public long getTotalPayments() {
+        Session session = this.factory.getObject().getCurrentSession();
+        CriteriaBuilder b = session.getCriteriaBuilder();
+        CriteriaQuery<Long> q = b.createQuery(Long.class);
+        Root<Payment> root = q.from(Payment.class);
+        q.select(b.count(root));
+        q.where(b.equal(root.get("status"), "SUCCESS"));
+        return session.createQuery(q).getSingleResult();
+    }
     
 }

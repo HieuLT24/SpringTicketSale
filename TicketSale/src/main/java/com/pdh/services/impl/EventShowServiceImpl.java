@@ -37,4 +37,10 @@ public class EventShowServiceImpl implements EventShowService{
         return this.eventRepo.getEventsByCateId(id);
     }
 
+    @Override
+    public long getTotalEvents() {
+        return this.eventRepo.getTotalEvents();
+    }
+
+
 }

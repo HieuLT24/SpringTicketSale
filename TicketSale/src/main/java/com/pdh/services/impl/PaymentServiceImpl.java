@@ -253,4 +253,14 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+    @Override
+    public double getTotalRevenue() {
+        return paymentRepository.getTotalRevenue();
+    }
+
+    @Override
+    public long getTotalPayments() {
+        return paymentRepository.getTotalPayments();
+    }
+
 }
