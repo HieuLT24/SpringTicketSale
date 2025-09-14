@@ -8,7 +8,6 @@ import com.pdh.pojo.Payment;
 import com.pdh.pojo.PaymentTicket;
 import com.pdh.pojo.Ticket;
 import com.pdh.pojo.User;
-// import com.pdh.services.EventShowService;
 import com.pdh.services.PaymentService;
 import com.pdh.services.PaymentTicketService;
 import com.pdh.services.TicketService;
@@ -28,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,43 +68,24 @@ public class ApiPaymentController {
     private String frontendBaseUrl;
 
     @PostMapping("/process")
-    public ResponseEntity<?> processPayment(@RequestBody Map<String, Object> paymentRequest,
-            Authentication authentication,
-            HttpServletRequest request) {
-//        Map<String, Object> response = new HashMap<>();
-        String username = (authentication != null && authentication.isAuthenticated()
-                && !"anonymousUser".equals(authentication.getName())) ? authentication.getName() : null;
-        if (username == null) {
-            Object attrUsername = request.getAttribute("username");
-            if (attrUsername instanceof String) {
-                username = (String) attrUsername;
-            }
+    public ResponseEntity<?> processPayment(@RequestBody Map<String, Object> paymentRequest, HttpServletRequest request) {
+
+        String username = null;
+        if (SecurityContextHolder.getContext() != null && SecurityContextHolder.getContext().getAuthentication() != null) {
+            username = SecurityContextHolder.getContext().getAuthentication().getName();
         }
 
         try {
-            if (username == null || username.trim().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                        "success", false,
-                        "message", "Bạn cần đăng nhập để thanh toán"));
-            }
+            
 
             User user = userService.getUserByUsername(username);
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                        "success", false,
-                        "message", "Không tìm thấy tài khoản người dùng"));
-            }
-            Integer eventId = (Integer) paymentRequest.get("eventId");
+            
             List<Integer> ticketIds = (List<Integer>) paymentRequest.get("ticketIds");
             String paymentMethod = (String) paymentRequest.get("paymentMethod");
             Number totalAmountNum = (Number) paymentRequest.get("totalAmount");
             Double totalAmount = totalAmountNum != null ? totalAmountNum.doubleValue() : null;
 
-            if (eventId == null) {
-                return ResponseEntity.badRequest().body(Map.of(
-                        "success", false,
-                        "message", "Thiếu thông tin sự kiện"));
-            }
+
 
             if (ticketIds == null || ticketIds.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of(

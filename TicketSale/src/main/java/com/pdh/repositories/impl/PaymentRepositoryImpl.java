@@ -5,10 +5,13 @@
 package com.pdh.repositories.impl;
 
 import com.pdh.pojo.Payment;
+import com.pdh.pojo.PaymentTicket;
+import com.pdh.pojo.Ticket;
 import com.pdh.repositories.PaymentRepository;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
 
 import java.util.List;
@@ -46,7 +49,7 @@ public class PaymentRepositoryImpl implements PaymentRepository{
     @Override
     public Payment getPaymentById(int id) {
         Session session = this.factory.getObject().getCurrentSession();
-        return session.get(Payment.class, id);
+        return session.find(Payment.class, id);
     }
 
     @Override
@@ -104,6 +107,31 @@ public class PaymentRepositoryImpl implements PaymentRepository{
         q.select(b.count(root));
         q.where(b.equal(root.get("status"), "SUCCESS"));
         return session.createQuery(q).getSingleResult();
+    }
+    
+    @Override
+    public double getRevenueByEventId(int eventId) {
+        Session session = this.factory.getObject().getCurrentSession();
+        CriteriaBuilder b = session.getCriteriaBuilder();
+        CriteriaQuery<Double> q = b.createQuery(Double.class);
+        
+        Root<Payment> paymentRoot = q.from(Payment.class);
+        
+        Join<Payment, PaymentTicket> paymentTicketJoin = 
+            paymentRoot.join("paymentTicketCollection");
+        
+        Join<PaymentTicket, Ticket> ticketJoin = 
+            paymentTicketJoin.join("ticketId");
+        
+        q.select(b.sum(paymentRoot.get("totalAmount")));
+        
+        q.where(b.and(
+            b.equal(paymentRoot.get("status"), "SUCCESS"),
+            b.equal(ticketJoin.get("eventShowId").get("id"), eventId)
+        ));
+        
+        Double result = session.createQuery(q).getSingleResult();
+        return result != null ? result : 0.0;
     }
     
 }

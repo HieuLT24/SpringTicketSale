@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import { Navbar, Nav, Container, Dropdown, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { MyUserContext } from '../../configs/MyContexts';
@@ -24,8 +24,8 @@ const Header = () => {
           <Nav className="ms-auto">
             {isAuthenticated ? (
               <Dropdown>
-                <Dropdown.Toggle 
-                  variant="outline-light" 
+                <Dropdown.Toggle
+                  variant="outline-light"
                   id="dropdown-basic"
                   style={{
                     borderRadius: '20px',
@@ -39,13 +39,13 @@ const Header = () => {
                   }}
                 >
                   {user?.avatar ? (
-                    <img 
-                      src={user.avatar} 
-                      alt="Avatar" 
+                    <img
+                      src={user.avatar}
+                      alt="Avatar"
                       className="rounded-circle"
-                      style={{ 
-                        width: '24px', 
-                        height: '24px', 
+                      style={{
+                        width: '24px',
+                        height: '24px',
                         objectFit: 'cover',
                         border: '1px solid rgba(255, 255, 255, 0.3)'
                       }}
@@ -59,13 +59,13 @@ const Header = () => {
                   <Dropdown.Header className="text-center py-2">
                     <div className="d-flex align-items-center justify-content-center mb-2">
                       {user?.avatar ? (
-                        <img 
-                          src={user.avatar} 
-                          alt="Avatar" 
+                        <img
+                          src={user.avatar}
+                          alt="Avatar"
                           className="rounded-circle"
-                          style={{ 
-                            width: '40px', 
-                            height: '40px', 
+                          style={{
+                            width: '40px',
+                            height: '40px',
                             objectFit: 'cover',
                             border: '2px solid #007bff'
                           }}
@@ -78,6 +78,19 @@ const Header = () => {
                     <small className="text-muted">{user?.email}</small>
                   </Dropdown.Header>
                   <Dropdown.Divider />
+                  {user?.role === 'ORGANIZER' && (
+                    <>
+                      <Dropdown.Item as={Link} to="/secure/events" className="py-2">
+                        <i className="fas fa-user-circle me-2 text-primary"></i>
+                        Quản lý sự kiện
+                      </Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/secure/revenue" className="py-2">
+                        <i className="fas fa-chart-line me-2 text-success"></i>
+                        Thống kê doanh thu
+                      </Dropdown.Item>
+                    </>
+                  )}
+
                   <Dropdown.Item as={Link} to="/secure/profile" className="py-2">
                     <i className="fas fa-user-circle me-2 text-primary"></i>
                     Thông tin cá nhân
@@ -91,7 +104,7 @@ const Header = () => {
                     Vé của tôi
                   </Dropdown.Item>
                   <Dropdown.Divider />
-                  <Dropdown.Item 
+                  <Dropdown.Item
                     onClick={() => dispatch({ type: "logout" })}
                     className="py-2 text-danger"
                   >
@@ -102,10 +115,10 @@ const Header = () => {
               </Dropdown>
             ) : (
               <>
-                <Button 
-                  as={Link} 
-                  to="/login" 
-                  variant="outline-light" 
+                <Button
+                  as={Link}
+                  to="/login"
+                  variant="outline-light"
                   className="me-2"
                   style={{
                     borderRadius: '20px',
@@ -128,9 +141,9 @@ const Header = () => {
                   <i className="fas fa-sign-in-alt me-1"></i>
                   Đăng nhập
                 </Button>
-                <Button 
-                  as={Link} 
-                  to="/register" 
+                <Button
+                  as={Link}
+                  to="/register"
                   variant="warning"
                   className="fw-semibold"
                   style={{

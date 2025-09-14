@@ -15,6 +15,9 @@ import { MyUserContext } from './configs/MyContexts';
 import { MyUserReducer } from './reducers/MyUserReducer';
 import cookie from 'react-cookies';
 import { authApis, endpoints } from './configs/Apis';
+import MyEvents from './components/MyEvents';
+import EventDetailForOrganizer from './components/EventDetailForOrganizer';
+import RevenueStatistics from './components/RevenueStatistics';
 function App() {
   const [user, dispatch] = useReducer(MyUserReducer, null);
 
@@ -49,6 +52,9 @@ function App() {
             <Route path="/secure/profile" element={<UserProfile />} />
             <Route path="/secure/payments" element={<PaymentsPage />} />
             <Route path="/secure/tickets" element={<MyTicketsPage />} />
+            <Route path="/secure/events" element={<MyEvents />} />
+            <Route path="/secure/events/:eventId" element={<EventDetailForOrganizer />} />
+            <Route path="/secure/revenue" element={<RevenueStatistics />} />
           </Routes>
 
           <Footer />

@@ -5,7 +5,6 @@
 package com.pdh.repositories.impl;
 
 import com.pdh.pojo.Category;
-import com.pdh.pojo.EventShow;
 import com.pdh.repositories.CategoryRepository;
 import java.util.List;
 import org.hibernate.Session;
@@ -29,15 +28,16 @@ public class CategoryRepositoryImpl implements CategoryRepository{
     @Override
     public List<Category> getCates() {
         Session s = this.factory.getObject().getCurrentSession();
-        Query q = s.createNamedQuery("Category.findAll", Category.class);
+        Query<Category> q = s.createNamedQuery("Category.findAll", Category.class);
         return q.getResultList();
     }
 
     @Override
     public Category getCateById(int id) {
         Session s = this.factory.getObject().getCurrentSession();
-        Query q = s.createNamedQuery("Category.findById", Category.class);
-        return (Category) q.getSingleResult();
+        Query<Category> q = s.createNamedQuery("Category.findById", Category.class);
+        q.setParameter("id", id);
+        return q.getSingleResult();
     }
     
 }

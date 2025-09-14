@@ -17,5 +17,9 @@ public interface EventShowRepository {
     EventShow getEventById(int id);
     List<EventShow> getEventsByCateId(int id);
     long getTotalEvents();
-
+    
+    List<EventShow> getEventsByOrganizer(String username);
+    EventShow addEvent(EventShow event);
+    EventShow updateEvent(EventShow event);
+    boolean deleteEvent(int eventId);
 }

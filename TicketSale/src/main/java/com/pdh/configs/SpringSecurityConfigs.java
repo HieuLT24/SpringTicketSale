@@ -7,7 +7,6 @@ package com.pdh.configs;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +24,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 
 /**
@@ -44,8 +42,6 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
 @PropertySource("classpath:cloudinary.properties")
 public class SpringSecurityConfigs {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {

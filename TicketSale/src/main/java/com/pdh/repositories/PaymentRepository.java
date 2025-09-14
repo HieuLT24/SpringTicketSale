@@ -26,6 +26,7 @@ public interface PaymentRepository {
     List<Payment> getPaymentsByUserId(int userId);
     
     double getTotalRevenue();
+    double getRevenueByEventId(int eventId);
     long getTotalPayments();
 
 }

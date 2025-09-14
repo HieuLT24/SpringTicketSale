@@ -19,7 +19,18 @@ export const endpoints = {
     'myPayments': 'secure/payment/my',
     'myTickets': 'secure/payment/my/tickets',
     'organizerRequest': 'secure/organizer-request',
-    'organizerRequestStatus': 'secure/organizer-request-status'
+    'organizerRequestStatus': 'secure/organizer-request-status',
+    'myEvents': 'secure/myEvents',
+    'createEvent': 'secure/myEvents',
+    'updateEvent': (eventId) => `secure/myEvents/${eventId}`,
+    'deleteEvent': (eventId) => `secure/myEvents/${eventId}`,
+    'eventSoldTickets': (eventId) => `secure/events/${eventId}/sold-tickets`,
+    'eventRevenue': (eventId) => `secure/events/${eventId}/revenue`,
+    'revenueEvents': 'secure/revenue/events',
+    'revenueMonthly': 'secure/revenue/monthly',
+    'revenueQuarterly': 'secure/revenue/quarterly',
+    'revenueYearly': 'secure/revenue/yearly',
+    'revenueOverall': 'secure/revenue/overall',
 }
 
 export const authApis = () => {

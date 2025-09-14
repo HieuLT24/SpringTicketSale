@@ -119,4 +119,43 @@ public class EventShowRepositoryImpl implements EventShowRepository {
         return q.getSingleResult();
     }
 
+    @Override
+    public List<EventShow> getEventsByOrganizer(String username) {
+        Session s = this.factory.getObject().getCurrentSession();
+        CriteriaBuilder b = s.getCriteriaBuilder();
+        CriteriaQuery<EventShow> q = b.createQuery(EventShow.class);
+        Root root = q.from(EventShow.class);
+        q.select(root);
+        
+        q.where(b.equal(root.get("organizer").get("username"), username));
+        q.orderBy(b.desc(root.get("time")));
+        
+        return s.createQuery(q).getResultList();
+    }
+
+    @Override
+    public EventShow addEvent(EventShow event) {
+        Session s = this.factory.getObject().getCurrentSession();
+        s.persist(event);
+        return event;
+    }
+
+    @Override
+    public EventShow updateEvent(EventShow event) {
+        Session s = this.factory.getObject().getCurrentSession();
+        s.merge(event);
+        return event;
+    }
+
+    @Override
+    public boolean deleteEvent(int eventId) {
+        Session s = this.factory.getObject().getCurrentSession();
+        EventShow event = s.find(EventShow.class, eventId);
+        if (event != null) {
+            s.remove(event);
+            return true;
+        }
+        return false;
+    }
+
 }

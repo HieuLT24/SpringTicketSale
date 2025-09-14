@@ -7,6 +7,8 @@ package com.pdh.pojo;
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -16,7 +18,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Collection;
@@ -43,8 +44,8 @@ public class EventShow implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "id")
     private Integer id;
     @Size(max = 45)
@@ -73,6 +74,9 @@ public class EventShow implements Serializable {
     @JoinColumn(name = "category", referencedColumnName = "id")
     @ManyToOne
     private Category category;
+    @JoinColumn(name = "organizer", referencedColumnName = "id")
+    @ManyToOne
+    private User organizer;
 
     public EventShow() {
     }
@@ -160,6 +164,14 @@ public class EventShow implements Serializable {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public User getOrganizer() {
+        return organizer;
+    }
+
+    public void setOrganizer(User organizer) {
+        this.organizer = organizer;
     }
 
     @Override

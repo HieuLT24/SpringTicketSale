@@ -37,6 +37,6 @@ public class ApiCategoryController {
 
     @GetMapping("/{cateId}")
     public ResponseEntity<?> getEventsByCateId(@PathVariable int cateId, HttpServletRequest request) {
-        return ResponseEntity.ok(eventService.getEventsByCateId(cateId));
+        return ResponseEntity.ok(eventService.getEventsByCateIdAsDTO(cateId));
     }
 }
