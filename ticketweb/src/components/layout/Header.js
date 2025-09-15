@@ -55,7 +55,7 @@ const Header = () => {
                   )}
                   <span>{user?.fullname || user?.username}</span>
                 </Dropdown.Toggle>
-                <Dropdown.Menu className="shadow-lg" style={{ borderRadius: '10px', border: 'none' }}>
+                <Dropdown.Menu className="shadow-lg" style={{ borderRadius: '10px', border: 'none', zIndex: 9999 }}>
                   <Dropdown.Header className="text-center py-2">
                     <div className="d-flex align-items-center justify-content-center mb-2">
                       {user?.avatar ? (
@@ -104,6 +104,10 @@ const Header = () => {
                     Vé của tôi
                   </Dropdown.Item>
                   <Dropdown.Divider />
+                  <Dropdown.Item as={Link} to="/secure/messages" className="py-2">
+                    <i className="fas fa-comments me-2 text-info"></i>
+                    Tin nhắn
+                  </Dropdown.Item>
                   <Dropdown.Item
                     onClick={() => dispatch({ type: "logout" })}
                     className="py-2 text-danger"

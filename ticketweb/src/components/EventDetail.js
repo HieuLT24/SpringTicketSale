@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Alert, Spinner, Modal } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import Apis, { authApis, endpoints}   from '../configs/Apis';
+import { MyUserContext } from '../configs/MyContexts';
+import { ensureChatDocument, getChatIdForUsers } from '../services/chatService';
 
 const EventDetail = () => {
   const { eventId } = useParams();
@@ -16,6 +18,7 @@ const EventDetail = () => {
   const [selectedTickets, setSelectedTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('MOMO');
+  const [user] = useContext(MyUserContext);
 
   useEffect(() => {
     loadEventDetail();
@@ -261,7 +264,7 @@ const EventDetail = () => {
             </Col>
 
             <Col lg={4}>
-              <Card className="sticky-top shadow-lg" style={{ top: '80px' }}>
+              <Card className="sticky-top shadow-lg" style={{ top: '80px', zIndex: 1000 }}>
                 <Card.Body className="text-center">
                   <h4 className="mb-3">Đặt vé</h4>
                   <div className="mb-4">
@@ -283,6 +286,30 @@ const EventDetail = () => {
                     <p className="mb-2">⚡ Xác nhận ngay lập tức</p>
                     <p className="mb-0">📱 Nhận vé qua email</p>
                   </div>
+                  {event?.organizerId && (
+                    <Button 
+                      variant="outline-secondary" 
+                      size="md" 
+                      className="w-100 mt-3"
+                      onClick={async () => {
+                        if (!user) {
+                          navigate('/login');
+                          return;
+                        }
+                        const meId = String(user.id);
+                        const otherId = String(event.organizerId);
+                        await ensureChatDocument(
+                          meId,
+                          otherId,
+                          user.fullname || user.username || meId,
+                          event.organizerName || otherId
+                        );
+                        navigate(`/secure/messages/${getChatIdForUsers(meId, otherId)}`);
+                      }}
+                    >
+                      Nhắn tin với nhà tổ chức
+                    </Button>
+                  )}
                 </Card.Body>
               </Card>
 

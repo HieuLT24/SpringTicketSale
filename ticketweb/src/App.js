@@ -18,6 +18,8 @@ import { authApis, endpoints } from './configs/Apis';
 import MyEvents from './components/MyEvents';
 import EventDetailForOrganizer from './components/EventDetailForOrganizer';
 import RevenueStatistics from './components/RevenueStatistics';
+import ChatList from './components/chat/ChatList';
+import ChatWindow from './components/chat/ChatWindow';
 function App() {
   const [user, dispatch] = useReducer(MyUserReducer, null);
 
@@ -55,6 +57,8 @@ function App() {
             <Route path="/secure/events" element={<MyEvents />} />
             <Route path="/secure/events/:eventId" element={<EventDetailForOrganizer />} />
             <Route path="/secure/revenue" element={<RevenueStatistics />} />
+            <Route path="/secure/messages" element={<ChatList />} />
+            <Route path="/secure/messages/:chatId" element={<ChatWindow />} />
           </Routes>
 
           <Footer />

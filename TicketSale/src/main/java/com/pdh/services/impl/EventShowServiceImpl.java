@@ -251,6 +251,7 @@ public class EventShowServiceImpl implements EventShowService{
         if (event.getOrganizer() != null) {
             dto.setOrganizerId(event.getOrganizer().getId());
             dto.setOrganizerName(event.getOrganizer().getFullname());
+            dto.setOrganizerUsername(event.getOrganizer().getUsername());
         }
         
         return dto;
