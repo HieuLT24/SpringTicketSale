@@ -20,5 +20,6 @@ public interface UserRepository {
     boolean authenticate(String username, String password);
     void updateUser(User user);
     void deleteUserById(int id);
+    User getUserByEmail(String email);
     
 }

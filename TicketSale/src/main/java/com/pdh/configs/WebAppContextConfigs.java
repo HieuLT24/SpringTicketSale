@@ -27,6 +27,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
     "com.pdh.repositories",
     "com.pdh.services",
     "com.pdh.configs",
+    
 })
 @EnableTransactionManagement
 public class WebAppContextConfigs implements WebMvcConfigurer {

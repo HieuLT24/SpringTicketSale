@@ -38,7 +38,9 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
     "com.pdh.repositories",
     "com.pdh.services",
     "com.pdh.filter",
-    "com.pdh.utils",})
+    "com.pdh.utils",
+    "com.pdh.configs",
+})
 @PropertySource("classpath:cloudinary.properties")
 public class SpringSecurityConfigs {
 

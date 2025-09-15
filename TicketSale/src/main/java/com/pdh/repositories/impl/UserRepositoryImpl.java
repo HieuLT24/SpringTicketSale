@@ -94,4 +94,12 @@ public class UserRepositoryImpl implements UserRepository {
         return this.passwordEncoder.matches(password, u.getPassword());
     }
 
+    @Override
+    public User getUserByEmail(String email) {
+        Session s = this.factory.getObject().getCurrentSession();
+        Query<User> q = s.createNamedQuery("User.findByEmail", User.class);
+        q.setParameter("email", email);
+        return q.getSingleResult();
+    }
+
 }

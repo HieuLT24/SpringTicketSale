@@ -168,6 +168,12 @@ const login = async (e) => {
                 </Form>
 
                 <div className="text-center">
+                  <div className="mb-3">
+                    <Link to="/forgot-password" className="text-decoration-none">
+                      <i className="fas fa-unlock-alt me-2"></i>
+                      Quên mật khẩu?
+                    </Link>
+                  </div>
                   <p className="text-muted mb-0">
                     Chưa có tài khoản?{' '}
                     <Link

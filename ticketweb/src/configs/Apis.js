@@ -31,6 +31,8 @@ export const endpoints = {
     'revenueQuarterly': 'secure/revenue/quarterly',
     'revenueYearly': 'secure/revenue/yearly',
     'revenueOverall': 'secure/revenue/overall',
+    'forgotPassword': 'forgot-password',
+    'resetPassword': 'reset-password'
 }
 
 export const authApis = () => {

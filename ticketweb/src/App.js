@@ -20,6 +20,8 @@ import EventDetailForOrganizer from './components/EventDetailForOrganizer';
 import RevenueStatistics from './components/RevenueStatistics';
 import ChatList from './components/chat/ChatList';
 import ChatWindow from './components/chat/ChatWindow';
+import ForgotPassword from './components/auth/ForgotPassword';
+import ResetPassword from './components/auth/ResetPassword';
 function App() {
   const [user, dispatch] = useReducer(MyUserReducer, null);
 
@@ -51,6 +53,8 @@ function App() {
             <Route path="/payment/result" element={<PaymentResult />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/secure/profile" element={<UserProfile />} />
             <Route path="/secure/payments" element={<PaymentsPage />} />
             <Route path="/secure/tickets" element={<MyTicketsPage />} />

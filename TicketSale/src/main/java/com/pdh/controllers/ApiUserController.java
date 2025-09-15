@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,6 +50,9 @@ public class ApiUserController {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired 
+    private JavaMailSender mailSender;
+
     @PostMapping(path = "/register",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -68,6 +75,88 @@ public class ApiUserController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai thông tin đăng nhập");
     }
+
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam("email") String email) {
+        try {
+            User user = userService.getUserByEmail(email);
+
+            if (user != null) {
+                String token = jwtUtils.generateToken(email);
+                String resetUrl = "http://localhost:3000/reset-password?token=" + token; 
+
+                SimpleMailMessage mailMessage = new SimpleMailMessage();
+                mailMessage.setTo(email);
+                mailMessage.setSubject("Đặt lại mật khẩu - TicketWeb");
+                mailMessage.setText("Xin chào " + user.getFullname() + ",\n\n" +
+                        "Bạn đã yêu cầu đặt lại mật khẩu. Nhấn vào link sau để đặt lại mật khẩu:\n\n" +
+                        resetUrl + "\n\n" +
+                        "Link này sẽ hết hạn sau 1 giờ.\n\n" +
+                        "Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.\n\n" +
+                        "Trân trọng,\n" +
+                        "Đội ngũ TicketWeb");
+
+                mailSender.send(mailMessage);
+
+                return ResponseEntity.ok(Map.of("message", "Link khôi phục mật khẩu đã được gửi đến email của bạn!"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Email không tồn tại trong hệ thống!"));
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Có lỗi xảy ra khi gửi email. Vui lòng thử lại sau!"));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(
+            @RequestParam("token") String token,
+            @RequestParam("password") String password,
+            @RequestParam("confirmPassword") String confirmPassword) {
+        try {
+            if (password == null || password.length() < 6) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Mật khẩu phải có ít nhất 6 ký tự!"));
+            }
+            if (!password.equals(confirmPassword)) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message", "Mật khẩu xác nhận không khớp!"));
+            }
+
+            String email = jwtUtils.validateToken(token);
+            if (email == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Link khôi phục không hợp lệ hoặc đã hết hạn."));
+            }
+
+            User user = userService.getUserByEmail(email);
+            if (user != null) {
+                BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+                user.setPassword(passwordEncoder.encode(password));
+                userService.updateUser(user);
+
+                return ResponseEntity.ok(Map.of("message", "Mật khẩu đã được đặt lại thành công!"));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "Không tìm thấy tài khoản!"));
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Có lỗi xảy ra khi đặt lại mật khẩu!"));
+        }
+    }
+
+
+
+
+
+
+
+
 
     @GetMapping("/secure/profile")
     @ResponseBody
