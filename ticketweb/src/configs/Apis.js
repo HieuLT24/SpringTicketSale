@@ -32,7 +32,9 @@ export const endpoints = {
     'revenueYearly': 'secure/revenue/yearly',
     'revenueOverall': 'secure/revenue/overall',
     'forgotPassword': 'forgot-password',
-    'resetPassword': 'reset-password'
+    'resetPassword': 'reset-password',
+    'loginGoogle': 'login/google',
+    'googleClientId': 'public/google-client-id'
 }
 
 export const authApis = () => {

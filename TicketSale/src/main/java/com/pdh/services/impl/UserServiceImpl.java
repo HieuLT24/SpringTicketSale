@@ -147,4 +147,26 @@ public class UserServiceImpl implements UserService {
         return this.userRepo.getUserByEmail(email);
     }
 
+    @Override
+    public User createUserFromGoogle(String email, String fullname, String avatarUrl) {
+        User existing = null;
+        try {
+            existing = this.userRepo.getUserByEmail(email);
+        } catch (Exception ex) {
+            existing = null;
+        }
+        if (existing != null) return existing;
+
+        User u = new User();
+        u.setEmail(email);
+        u.setFullname(fullname != null ? fullname : email);
+        u.setUsername(email);
+        u.setRole("ROLE_USER");
+        if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            u.setAvatar(avatarUrl);
+        }
+
+        return this.userRepo.createUser(u);
+    }
+
 }

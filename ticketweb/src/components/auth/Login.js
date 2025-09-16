@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Apis, { endpoints, authApis } from '../../configs/Apis';
@@ -22,6 +22,7 @@ const Login = () => {
   const nav  = useNavigate();
   const [, dispatch] = useContext(MyUserContext);
   const [q] = useSearchParams();
+  const googleBtnRef = useRef(null);
 
 
   const validate = () => {
@@ -61,6 +62,39 @@ const login = async (e) => {
       nav(next === null?"/":next);
   }
 }
+
+  const handleGoogleCredential = async (credential) => {
+    try {
+      const res = await Apis.post(endpoints.loginGoogle, { token: credential });
+      const token = res.data.token;
+      cookie.save('token', token, { path: '/', maxAge: 86400, sameSite: 'lax', secure: false });
+      const u = await authApis(token).get(endpoints.profile);
+      dispatch({ type: 'login', payload: u.data });
+      let next = q.get('next');
+      nav(next === null ? '/' : next);
+    } catch (e) {
+      setErr('Đăng nhập Google thất bại.');
+    }
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const res = await Apis.get(endpoints.googleClientId);
+        const clientId = res.data.clientId;
+        if (window.google && googleBtnRef.current && clientId) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: (response) => handleGoogleCredential(response.credential)
+          });
+          window.google.accounts.id.renderButton(googleBtnRef.current, { theme: 'outline', size: 'large', width: 300 });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    init();
+  }, []);
 
 
   return (
@@ -166,6 +200,10 @@ const login = async (e) => {
                     )}
                   </Button>
                 </Form>
+
+                <div className="text-center my-3">
+                  <div ref={googleBtnRef} />
+                </div>
 
                 <div className="text-center">
                   <div className="mb-3">

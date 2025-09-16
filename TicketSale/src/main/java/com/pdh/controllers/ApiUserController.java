@@ -3,7 +3,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.pdh.controllers;
-
 import com.pdh.pojo.UpdateRequest;
 import com.pdh.pojo.User;
 import com.pdh.services.UserService;
@@ -12,10 +11,14 @@ import com.pdh.utils.JwtUtils;
 import java.time.LocalDateTime;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +36,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.client.RestTemplate;
 
 /**
  *
@@ -41,17 +45,24 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @CrossOrigin
 @RequestMapping("/api")
+@PropertySource("classpath:google-auth.properties")
 public class ApiUserController {
 
     @Autowired
     private UserService userService;
+
     @Autowired
     private UpdateRequestService updateRequestService;
+
     @Autowired
     private JwtUtils jwtUtils;
 
     @Autowired 
     private JavaMailSender mailSender;
+
+    @Value("${google.client_id}")
+    private String GOOGLE_CLIENT_ID;
+
 
     @PostMapping(path = "/register",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
@@ -76,6 +87,52 @@ public class ApiUserController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Sai thông tin đăng nhập");
     }
 
+    
+    @PostMapping("/login/google")
+    public ResponseEntity<?> verifyGoogleToken(@RequestBody Map<String, String> body) {
+        String idTokenString = body.get("token");
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idTokenString;
+            Map<?, ?> tokenInfo = restTemplate.getForObject(url, Map.class);
+            if (tokenInfo != null && GOOGLE_CLIENT_ID.equals(String.valueOf(tokenInfo.get("aud")))) {
+                String email = String.valueOf(tokenInfo.get("email"));
+                String name = tokenInfo.get("name") != null ? String.valueOf(tokenInfo.get("name")) : email;
+                String pictureUrl = tokenInfo.get("picture") != null ? String.valueOf(tokenInfo.get("picture")) : null;
+
+                User user = null;
+                try {
+                    user = userService.getUserByEmail(email);
+                } catch (Exception ex) {
+                    user = null;
+                }
+                if (user == null) {
+                    user = userService.createUserFromGoogle(email, name, pictureUrl);
+                }
+
+                String token = jwtUtils.generateToken(user.getUsername());
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("token", token);
+                response.put("email", email);
+                response.put("fullname", name);
+                response.put("avatar", pictureUrl);
+
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid ID token.");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/public/google-client-id")
+    public ResponseEntity<?> getGoogleClientId() {
+        Map<String, String> res = new HashMap<>();
+        res.put("clientId", GOOGLE_CLIENT_ID);
+        return ResponseEntity.ok(res);
+    }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestParam("email") String email) {
