@@ -1,7 +1,7 @@
 import axios from "axios";
 import cookie from 'react-cookies'
 
-const BASE_URL = process.env.BASE_URL;
+const BASE_URL = "https://springticketsale-production.up.railway.app/TicketSale/api/";
 console.log("BASE_URL =", BASE_URL);
 
 export const endpoints = {
