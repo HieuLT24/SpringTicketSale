@@ -1,7 +1,7 @@
 import axios from "axios";
 import cookie from 'react-cookies'
 
-const BASE_URL = "http://localhost:8080/TicketSale/api/";
+const BASE_URL = "http://springticketsale-production.up.railway.app/TicketSale/api/";
 
 export const endpoints = {
     'events': 'events',
