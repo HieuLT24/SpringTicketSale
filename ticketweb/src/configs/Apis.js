@@ -2,6 +2,7 @@ import axios from "axios";
 import cookie from 'react-cookies'
 
 const BASE_URL = process.env.BASE_URL;
+console.log("BASE_URL =", BASE_URL);
 
 export const endpoints = {
     'events': 'events',
