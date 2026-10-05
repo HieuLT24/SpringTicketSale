@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { authApis, endpoints } from '../configs/Apis';
 import { Link } from 'react-router-dom';
 

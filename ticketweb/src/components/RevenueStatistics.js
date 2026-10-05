@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Container, Row, Col, Card, Button, Alert, Spinner, Tabs, Tab, Form } from 'react-bootstrap';
 import { authApis, endpoints } from '../configs/Apis';
 
@@ -16,7 +16,6 @@ const RevenueStatistics = () => {
   const [yearlyStats, setYearlyStats] = useState(null);
   const [overallStats, setOverallStats] = useState(null);
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   const loadYearlyStats = useCallback(async () => {
     if (yearlyLoadedRef.current) return;

@@ -12,7 +12,6 @@ const EventDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [ticketQuantity, setTicketQuantity] = useState(1);
   const [paying, setPaying] = useState(false);
   const [availableTickets, setAvailableTickets] = useState([]);
   const [selectedTickets, setSelectedTickets] = useState([]);

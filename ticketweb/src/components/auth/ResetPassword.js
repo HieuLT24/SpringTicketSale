@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Apis, { endpoints } from '../../configs/Apis';

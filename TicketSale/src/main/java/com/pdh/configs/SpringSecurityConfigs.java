@@ -25,6 +25,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import org.springframework.security.web.header.writers.CrossOriginOpenerPolicyHeaderWriter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import com.pdh.filter.JwtFilter;
 
 /**
  *
@@ -43,6 +51,9 @@ import org.springframework.web.multipart.support.StandardServletMultipartResolve
 })
 @PropertySource("classpath:cloudinary.properties")
 public class SpringSecurityConfigs {
+
+    @Autowired
+    private JwtFilter jwtFilter;
 
 
     @Bean
@@ -67,7 +78,7 @@ public class SpringSecurityConfigs {
                 .requestMatchers("/api/**").permitAll()
                 .anyRequest().permitAll())
                 .formLogin(form -> form
-                    .loginProcessingUrl("/admin/login")   
+                    .loginProcessingUrl("/admin/login")
                     .loginPage("/admin/login")
                     .defaultSuccessUrl("/admin/dashboard", true)
                     .failureUrl("/admin/login?error=true")
@@ -75,7 +86,19 @@ public class SpringSecurityConfigs {
                 .logout(logout -> logout
                     .logoutUrl("/admin/logout")
                     .logoutSuccessUrl("/admin/login?logout=true")
-                    .permitAll());
+                    .permitAll())
+                .headers(h -> h
+                    .crossOriginOpenerPolicy(coop -> coop
+                        .policy(CrossOriginOpenerPolicyHeaderWriter.CrossOriginOpenerPolicy.SAME_ORIGIN_ALLOW_POPUPS)
+                    )
+                )
+                .exceptionHandling(e -> e
+                    .defaultAuthenticationEntryPointFor(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                        new AntPathRequestMatcher("/api/**")
+                    )
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -105,10 +128,19 @@ public class SpringSecurityConfigs {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "X-Requested-With",
+                "Accept",
+                "Origin"
+        ));
+        configuration.setExposedHeaders(List.of("Authorization", "Location"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

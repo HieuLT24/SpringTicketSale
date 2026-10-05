@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { authApis, endpoints } from '../configs/Apis';
 
 const formatVnd = (n) => typeof n === 'number' ? n.toLocaleString('vi-VN') + ' VND' : '—';
@@ -54,12 +54,11 @@ const MyTicketsPage = () => {
               </div>
               <div className="row g-3">
                 {group.map((t) => (
-                  <div className="col-md-4" key={t.id}>
-                    <div className="card h-100 border-0 shadow-sm">
+                  <div className="col-md-4" key={t.id} >
+                    <div className="card h-100 border-0 shadow-sm" style={{ backgroundColor: 'lightblue' }}>
                       <div className="card-body">
                         <div className="d-flex justify-content-between align-items-center mb-2">
                           <h6 className="card-title m-0">Vé #{t.id}</h6>
-                          <span className="badge bg-secondary">{t.status || 'N/A'}</span>
                         </div>
                         <div className="mb-1">Ghế: <strong>{t.seatNumber || '—'}</strong></div>
                         <div className="mb-1">Giá: <strong className="text-success">{formatVnd(t.price)}</strong></div>

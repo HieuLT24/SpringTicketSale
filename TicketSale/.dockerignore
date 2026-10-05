@@ -1,0 +1,11 @@
+target/
+.git
+.gitignore
+.idea
+*.iml
+nbproject/
+nbbuild/
+nbdist/
+.nb-gradle/
+*.log
+.DS_Store

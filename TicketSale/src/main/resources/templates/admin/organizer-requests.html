@@ -360,7 +360,6 @@
                                             </div>
                                         </div>
                                     
-                                        <!-- Nút hành động cho yêu cầu PENDING -->
                                         <div th:if="${request.status == 'PENDING'}" class="mt-3 d-flex gap-2">
                                             <form th:action="@{/admin/organizer-requests}" method="post">
                                                 <input type="hidden" name="requestId" th:value="${request.id}">
@@ -383,7 +382,6 @@
                                             </form>
                                         </div>
                                     
-                                        <!-- Nếu đã xử lý thì hiển thị badge -->
                                         <div th:if="${request.status == 'APPROVED'}" class="mt-3">
                                             <span class="badge bg-success fs-6">
                                                 <i class="fas fa-check-circle me-1"></i> Đã chấp nhận

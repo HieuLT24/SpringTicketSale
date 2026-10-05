@@ -207,14 +207,6 @@ public class ApiUserController {
         }
     }
 
-
-
-
-
-
-
-
-
     @GetMapping("/secure/profile")
     @ResponseBody
     @CrossOrigin

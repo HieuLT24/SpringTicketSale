@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { Navbar, Nav, Container, Dropdown, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { MyUserContext } from '../../configs/MyContexts';
@@ -15,12 +15,7 @@ const Header = () => {
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="me-auto">
-            <Nav.Link as={Link} to="/">Trang chủ</Nav.Link>
-            <Nav.Link href="#events">Sự kiện</Nav.Link>
-            <Nav.Link href="#about">Giới thiệu</Nav.Link>
-            <Nav.Link href="#contact">Liên hệ</Nav.Link>
-          </Nav>
+          
           <Nav className="ms-auto">
             {isAuthenticated ? (
               <Dropdown>

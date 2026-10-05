@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ListGroup, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { MyUserContext } from '../../configs/MyContexts';
-import { subscribeToUserChats, subscribeToUserChatsMany, normalizeUserId } from '../../services/chatService';
+import { subscribeToUserChatsMany, normalizeUserId } from '../../services/chatService';
 
 const ChatList = () => {
   const [user] = useContext(MyUserContext);

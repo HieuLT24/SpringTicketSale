@@ -1,8 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { MyUserContext } from '../configs/MyContexts';
 import { authApis, endpoints } from '../configs/Apis';
-import cookie from 'react-cookies';
 
 const UserProfile = () => {
   const [user, dispatch] = useContext(MyUserContext);

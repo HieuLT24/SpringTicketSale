@@ -53,8 +53,6 @@ public class ApiPaymentController {
     @Autowired
     private UserService userService;
 
-    // @Autowired
-    // private EventShowService eventService;
 
     @Autowired
     private TicketService ticketService;
@@ -69,30 +67,22 @@ public class ApiPaymentController {
 
     @PostMapping("/process")
     public ResponseEntity<?> processPayment(@RequestBody Map<String, Object> paymentRequest, HttpServletRequest request) {
-
         String username = null;
         if (SecurityContextHolder.getContext() != null && SecurityContextHolder.getContext().getAuthentication() != null) {
             username = SecurityContextHolder.getContext().getAuthentication().getName();
         }
-
         try {
-            
-
             User user = userService.getUserByUsername(username);
-            
             List<Integer> ticketIds = (List<Integer>) paymentRequest.get("ticketIds");
             String paymentMethod = (String) paymentRequest.get("paymentMethod");
             Number totalAmountNum = (Number) paymentRequest.get("totalAmount");
             Double totalAmount = totalAmountNum != null ? totalAmountNum.doubleValue() : null;
-
-
 
             if (ticketIds == null || ticketIds.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
                         "message", "Vui lòng chọn ít nhất một vé"));
             }
-
             if (totalAmount == null || totalAmount <= 0) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
@@ -361,10 +351,10 @@ public class ApiPaymentController {
             User user = userService.getUserByUsername(username);
  
 
-            java.util.List<Ticket> tickets = ticketService.getTicketsByUserId(user.getId());
-            java.util.List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+            List<Ticket> tickets = ticketService.getTicketsByUserId(user.getId());
+            List<Map<String, Object>> result = new ArrayList<>();
             for (Ticket t : tickets) {
-                java.util.Map<String, Object> dto = new java.util.HashMap<>();
+                Map<String, Object> dto = new HashMap<>();
                 dto.put("id", t.getId());
                 dto.put("seatNumber", t.getSeatNumber());
                 dto.put("price", t.getPrice());
@@ -386,13 +376,13 @@ public class ApiPaymentController {
         try {
             Payment p = paymentService.getPaymentById(id);
             if (p == null || p.getPaymentTicketCollection() == null) {
-                return ResponseEntity.ok(java.util.List.of());
+                return ResponseEntity.ok(List.of());
             }
-            java.util.List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+            List<Map<String, Object>> result = new ArrayList<>();
             for (PaymentTicket pt : p.getPaymentTicketCollection()) {
                 Ticket t = pt.getTicketId();
                 if (t == null) continue;
-                java.util.Map<String, Object> dto = new java.util.HashMap<>();
+                Map<String, Object> dto = new HashMap<>();
                 dto.put("id", t.getId());
                 dto.put("seatNumber", t.getSeatNumber());
                 dto.put("price", t.getPrice());

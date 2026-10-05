@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Alert, Spinner, Modal, Form, Badge } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import  Apis, { endpoints, authApis} from '../configs/Apis';

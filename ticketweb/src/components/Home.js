@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Alert, Spinner, Form } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Apis, { endpoints } from '../configs/Apis';
@@ -15,7 +15,6 @@ const Home = () => {
 
   const urlParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const categoryParam = urlParams.get('category');
-  
   const pageParam = parseInt(urlParams.get('page') || '1');
   const kwParam = urlParams.get('kw') || '';
   const fromPriceParam = urlParams.get('fromPrice') || '';
@@ -25,8 +24,6 @@ const Home = () => {
   const [kw, setKw] = useState(kwParam);
   const [fromPrice, setFromPrice] = useState(fromPriceParam);
   const [toPrice, setToPrice] = useState(toPriceParam);
-
-
 
 
   const loadEvents = async (pageNumber = 1) => {
@@ -48,14 +45,26 @@ const Home = () => {
     }
   };
 
+  const loadCategories = async() => {
+    try {
+      const response = await Apis.get(endpoints.categories);
+      setCategories(response.data || []);
+    } catch (error) {
+      setCategories([]);
+    }
+  }
+
+
   useEffect(() => {
     loadCategories();
   }, []);
 
   useEffect(() => {
+
     setKw(kwParam);
     setFromPrice(fromPriceParam);
     setToPrice(toPriceParam);
+
     if (categoryParam) {
       const categoryId = parseInt(categoryParam);
       setSelectedCategory(categoryId);
@@ -68,14 +77,7 @@ const Home = () => {
     }
   }, [categoryParam, pageParam, kwParam, fromPriceParam, toPriceParam]);
 
-  const loadCategories = async() => {
-    try {
-      const response = await Apis.get(endpoints.categories);
-      setCategories(response.data || []);
-    } catch (error) {
-      setCategories([]);
-    }
-  }
+
 
 
   const handleCategoryClick = (categoryId) => {
@@ -140,14 +142,7 @@ const Home = () => {
                 Đặt vé cho hàng ngàn sự kiện hấp dẫn từ concert, hội thảo đến triển lãm. 
                 Trải nghiệm đặt vé nhanh chóng và an toàn cùng TicketHub.
               </p>
-              <Button variant="warning" size="lg" className="me-3">
-                Khám phá ngay
-              </Button>
-              <Button variant="outline-light" size="lg">
-                Tìm hiểu thêm
-              </Button>
             </Col>
-            
           </Row>
         </Container>
       </section>

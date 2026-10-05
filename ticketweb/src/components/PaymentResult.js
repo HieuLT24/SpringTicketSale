@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { authApis, endpoints } from '../configs/Apis';
 
