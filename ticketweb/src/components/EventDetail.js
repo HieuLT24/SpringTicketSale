@@ -87,7 +87,11 @@ const EventDetail = () => {
       }
     } catch (e) {
       console.error(e);
-      alert('Có lỗi khi tạo thanh toán');
+      if (e.response?.status === 401) {
+        alert('Vui lòng đăng nhập');
+      } else {
+        alert('Có lỗi khi tạo thanh toán');
+      }
     } finally {
       setPaying(false);
     }
