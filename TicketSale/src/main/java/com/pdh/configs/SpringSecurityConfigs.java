@@ -73,6 +73,7 @@ public class SpringSecurityConfigs {
                 .csrf(c -> c.disable()).authorizeHttpRequests(requests -> requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/secure/payment/callback/momo/redirect").permitAll()
+                .requestMatchers("/api/secure/payment/callback/vnpay").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/secure/**").authenticated()
                 .requestMatchers("/api/**").permitAll()
