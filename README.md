@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Demo (Frontend)** | https://spring-ticket-sale-eight.vercel.app |
-| **API (Backend)** | https://springticketsale-production.up.railway.app/TicketSale/api/events |
+| **Trang Admin** | https://springticketsale-production.up.railway.app/TicketSale/admin/dashboard |
 | **Source code** | https://github.com/HieuLT24/SpringTicketSale |
 | 
 
