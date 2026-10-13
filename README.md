@@ -1,355 +1,215 @@
-# 🎫 TicketHub — SpringTicketSale
+# 🎫 TicketHub — Nền tảng bán vé sự kiện trực tuyến
 
-**Nền tảng bán vé sự kiện trực tuyến** xây dựng với Spring MVC (backend) và React (frontend).
+> Ứng dụng full-stack cho phép người dùng khám phá sự kiện, mua vé và thanh toán qua **MoMo / VNPay**; ban tổ chức tự đăng sự kiện và theo dõi doanh thu; quản trị viên duyệt quyền tổ chức.
 
----
+| | |
+|---|---|
+| **Demo (Frontend)** | https://spring-ticket-sale-eight.vercel.app |
+| **API (Backend)** | https://springticketsale-production.up.railway.app/TicketSale/api/events |
+| **Source code** | https://github.com/HieuLT24/SpringTicketSale |
+| 
 
-## 📋 Mục lục
-
-- [Tính năng]
-- [Kiến trúc hệ thống]
-- [Công nghệ sử dụng]
-- [Cài đặt & Chạy dự án]
-- [Cấu trúc thư mục]
-- [API Endpoints]
-- [Luồng hoạt động]
+> ⚠️ Backend chạy trên gói miễn phí nên lần gọi đầu tiên có thể chậm vài giây do server "ngủ đông".
 
 ---
 
-## Tính năng
+## 1. Bài toán & mục tiêu
 
-### Người dùng (User)
-- Xem danh sách sự kiện, lọc theo danh mục
-- Xem chi tiết sự kiện và các loại vé còn lại
-- Đăng ký / Đăng nhập bằng tài khoản hoặc Google OAuth
-- Đặt mua vé và thanh toán trực tuyến
-- Xem lịch sử đơn thanh toán và vé đã mua
-- Cập nhật thông tin cá nhân, thay đổi mật khẩu
-- Quên mật khẩu / Đặt lại mật khẩu qua email
-- Nhắn tin với ban tổ chức (chat thời gian thực)
+Người dùng thường phải mua vé qua nhiều kênh rời rạc, còn ban tổ chức nhỏ thiếu công cụ để bán vé và nhìn thấy doanh thu. TicketHub gom toàn bộ luồng đó vào một nơi:
 
-### Ban tổ chức (Organizer)
-- Yêu cầu nâng cấp vai trò lên Organizer
-- Tạo, chỉnh sửa, xóa sự kiện
-- Quản lý chi tiết từng sự kiện (vé đã bán, doanh thu)
-- Xem thống kê doanh thu (theo tháng, quý, năm, tổng quan)
-- Chat với người mua vé
-
-### Xác thực & Bảo mật
-- JWT-based authentication
-- Spring Security bảo vệ các endpoint `/secure/**`
-- Hỗ trợ Google OAuth2 Sign-In
-- Gửi email quên mật khẩu và xác nhận
+- **Khách / Người dùng**: tìm kiếm sự kiện, chọn vé, thanh toán online, xem lại vé đã mua, nhắn tin trực tiếp với ban tổ chức.
+- **Ban tổ chức (Organizer)**: tạo/sửa/xóa sự kiện, xem số vé đã bán và thống kê doanh thu theo tháng / quý / năm.
+- **Quản trị viên (Admin)**: xem dashboard tổng quan và duyệt yêu cầu nâng cấp lên Organizer.
 
 ---
 
-## Kiến trúc hệ thống
+## 2. Điểm nhấn kỹ thuật
 
+### 💳 Tích hợp cổng thanh toán thật (MoMo & VNPay)
+- Tự xây dựng chuỗi dữ liệu và ký **HMAC-SHA256 (MoMo)** và **HMAC-SHA512 (VNPay)** theo tài liệu của từng cổng, không dùng thư viện bọc sẵn.
+- Xử lý đủ vòng đời: tạo đơn `PENDING` → sinh URL thanh toán → nhận **IPN / return callback** → cập nhật đơn `SUCCESS/FAILED` và chuyển vé sang `SOLD`.
+- Callback VNPay được **xác thực chữ ký** trước khi cập nhật trạng thái đơn hàng.
+- Mỗi đơn có mã giao dịch riêng, lưu lịch sử thanh toán và danh sách vé của từng người dùng.
+
+### 🔐 Xác thực & phân quyền
+- **JWT stateless**: filter riêng kiểm tra Bearer token cho toàn bộ `/api/secure/**`.
+- Mật khẩu băm bằng **BCrypt**; đăng nhập bằng **Google OAuth2** (xác minh ID token và kiểm tra `aud`).
+- Quên / đặt lại mật khẩu qua **email (JavaMail)** bằng link có thời hạn.
+- Khu vực quản trị `/admin/**` dùng **form login + `ROLE_ADMIN`** của Spring Security, tách biệt với luồng API JWT.
+- Kiểm tra **quyền sở hữu** ở tầng service: organizer chỉ sửa/xóa được sự kiện của mình và chỉ xem được doanh thu của sự kiện mình.
+
+### 📊 Thống kê doanh thu cho Organizer
+- Truy vấn bằng **Hibernate Criteria API**: join nhiều bảng (`Payment → PaymentTicket → Ticket → EventShow`), `GROUP BY` theo tháng / quý / năm, lọc theo organizer và trạng thái `SUCCESS`.
+- Giao diện React hiển thị tổng quan doanh thu, số vé bán và chi tiết từng sự kiện.
+
+### 💬 Chat thời gian thực
+- Người mua nhắn tin trực tiếp với ban tổ chức ngay trên trang sự kiện, dùng **Firebase Firestore** (`onSnapshot`) để đồng bộ tức thì.
+
+### 🔎 Tìm kiếm & phân trang sự kiện
+- Lọc theo từ khóa (tên / mô tả), khoảng giá, danh mục; sắp xếp động; phân trang phía server (9 sự kiện/trang).
+
+### 🛡️ Quy trình nâng quyền có kiểm duyệt
+- User gửi yêu cầu → Admin duyệt/từ chối trên dashboard Thymeleaf → hệ thống tự nâng role thành `ORGANIZER`.
+
+### 🚀 Triển khai & cấu hình
+- **Docker multi-stage** (Maven build → Tomcat 10.1 / JDK 17) cho backend.
+- Backend deploy trên **Railway**, frontend trên **Vercel**, ảnh lưu trên **Cloudinary**.
+- Toàn bộ thông tin nhạy cảm (DB, JWT secret, khóa MoMo/VNPay, mail, Cloudinary) được **đọc từ biến môi trường**, không commit vào repo.
+
+---
+
+## 3. Công nghệ sử dụng
+
+| Tầng | Công nghệ |
+|---|---|
+| **Backend** | Java 17, **Spring MVC 6.2** (cấu hình bằng Java, đóng gói WAR chạy trên Tomcat), **Spring Security 6.5**, **Hibernate ORM 7.1** (Criteria API), Thymeleaf (trang Admin), Spring Boot Mail/Thymeleaf starters |
+| **Bảo mật** | JWT (jjwt), BCrypt, Google Sign-In, Nimbus JOSE |
+| **CSDL** | MySQL 8 |
+| **Frontend** | React 19, React Router 7, React Bootstrap, Axios, `@react-oauth/google` |
+| **Dịch vụ ngoài** | MoMo (sandbox), VNPay (sandbox), Firebase Firestore, Cloudinary, SMTP (Gmail) |
+| **DevOps** | Maven, Docker (multi-stage), Railway, Vercel |
+
+---
+
+## 4. Kiến trúc hệ thống
+
+```mermaid
+flowchart LR
+    U[Người dùng / Organizer] --> FE[React SPA<br/>Vercel]
+    A[Admin] --> TH[Thymeleaf Admin UI]
+    FE -- REST + JWT --> BE
+    TH --> BE
+    subgraph BE[Spring MVC · Tomcat · Railway]
+        C[Controllers] --> S[Services] --> R[Repositories<br/>Hibernate]
+    end
+    R --> DB[(MySQL)]
+    BE --> CL[Cloudinary]
+    BE --> ML[SMTP Mail]
+    BE <--> PG[MoMo / VNPay]
+    FE <--> FB[(Firebase Firestore<br/>Chat)]
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        FRONTEND                             │
-│                  React 19 + React Router v7                 │
-│   React Bootstrap │ Axios │ Firebase (Realtime Chat)        │
-│        Google OAuth │ react-cookies (JWT storage)          │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ REST API (HTTP/JSON)
-                           │ Base URL: /TicketSale/api/
-┌──────────────────────────▼──────────────────────────────────┐
-│                        BACKEND                              │
-│             Spring MVC 6.2 + Spring Security 6.5            │
-│       Hibernate ORM 7.1 │ Thymeleaf │ JWT (jjwt 0.11.5)    │
-│      Cloudinary (upload ảnh) │ JavaMail (gửi email)        │
-│         Google API Client │ Jackson │ Nimbus JOSE           │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ JPA / Hibernate
-┌──────────────────────────▼──────────────────────────────────┐
-│                       DATABASE                              │
-│                    MySQL (mysql-connector-j 8.4)            │
-└─────────────────────────────────────────────────────────────┘
-                           
-┌─────────────────────────────────────────────────────────────┐
-│                   FIREBASE FIRESTORE                        │
-│                Real-time Chat giữa user và organizer        │
-└─────────────────────────────────────────────────────────────┘
 
-┌─────────────────────────────────────────────────────────────┐
-│                     CLOUDINARY CDN                          │
-│              Lưu trữ ảnh sự kiện và avatar người dùng      │
-└─────────────────────────────────────────────────────────────┘
+Backend tổ chức theo mô hình phân tầng rõ ràng: `controllers` → `services` (interface + `impl`) → `repositories` (interface + `impl`) → `pojo` (entity), kèm `dto`, `filter`, `configs`, `utils`.
+
+### Luồng thanh toán
+
+```mermaid
+sequenceDiagram
+    participant FE as React
+    participant API as Spring API
+    participant DB as MySQL
+    participant PG as MoMo / VNPay
+    FE->>API: POST /secure/payment/process (ticketIds, method)
+    API->>DB: Tạo Payment(PENDING) + PaymentTicket
+    API->>PG: Tạo yêu cầu thanh toán (ký HMAC)
+    API-->>FE: paymentUrl
+    FE->>PG: Chuyển hướng người dùng đến cổng thanh toán
+    PG->>API: IPN / callback (kết quả giao dịch)
+    API->>DB: Payment = SUCCESS/FAILED, Ticket = SOLD
+    PG-->>FE: Redirect về /payment/result
+```
+
+### Mô hình dữ liệu
+
+```mermaid
+erDiagram
+    USER ||--o{ PAYMENT : "thanh toán"
+    USER ||--o{ EVENTSHOW : "tổ chức"
+    USER ||--o{ UPDATEREQUEST : "yêu cầu nâng quyền"
+    CATEGORY ||--o{ EVENTSHOW : "phân loại"
+    EVENTSHOW ||--o{ TICKET : "có vé"
+    PAYMENT ||--o{ PAYMENTTICKET : "gồm"
+    TICKET ||--o{ PAYMENTTICKET : "thuộc"
 ```
 
 ---
 
-## Công nghệ sử dụng
+## 5. Tính năng chính
 
-### Backend (`/TicketSale`)
+**Người dùng**
+- Xem / tìm kiếm / lọc sự kiện theo danh mục, giá, từ khóa
+- Đăng ký, đăng nhập (tài khoản hoặc Google), quên & đặt lại mật khẩu
+- Mua vé, thanh toán MoMo hoặc VNPay, xem lịch sử đơn và "Vé của tôi"
+- Cập nhật hồ sơ (kèm ảnh đại diện), đổi mật khẩu
+- Chat với ban tổ chức
 
-| Thành phần | Công nghệ | Phiên bản |
-|---|---|---|
-| Ngôn ngữ | Java | 17 |
-| Web Framework | Spring MVC | 6.2.9 |
-| Bảo mật | Spring Security | 6.5.3 |
-| ORM | Hibernate | 7.1.0.Final |
-| Template Engine | Thymeleaf + Spring Security Extras | 3.5.4 / 3.1.2 |
-| Database | MySQL | 8.4.0 (connector) |
-| JWT | jjwt | 0.11.5 |
-| Upload ảnh | Cloudinary | 1.39.0 |
-| Gửi email | Spring Boot Mail Starter | 3.5.4 |
-| JSON | Jackson | 2.15.2 |
-| Google OAuth | Google API Client | 2.0.0 |
-| JWT parsing | Nimbus JOSE | 10.1 |
-| Build tool | Maven | WAR packaging |
-| App server | Jakarta EE 11 (e.g. Tomcat 11) | — |
+**Ban tổ chức**
+- Gửi yêu cầu trở thành Organizer
+- Tạo / sửa / xóa sự kiện, upload banner
+- Xem vé đã bán và doanh thu từng sự kiện
+- Thống kê doanh thu theo tháng, quý, năm, tổng quan
 
-### Frontend (`/ticketweb`)
-
-| Thành phần | Công nghệ | Phiên bản |
-|---|---|---|
-| UI Framework | React | 19.1.1 |
-| Routing | React Router DOM | 7.8.2 |
-| UI Components | React Bootstrap + Bootstrap | 2.10.10 / 5.3.0 |
-| HTTP Client | Axios | 1.11.0 |
-| Auth token | react-cookies | 0.1.1 |
-| Google OAuth | @react-oauth/google | 0.12.2 |
-| Realtime Chat | Firebase (Firestore) | 12.2.1 |
-| Build tool | Create React App (react-scripts) | 5.0.1 |
+**Quản trị viên**
+- Dashboard: tổng người dùng, sự kiện, vé đã bán, doanh thu
+- Duyệt / từ chối yêu cầu nâng cấp Organizer
 
 ---
 
-## Cài đặt & Chạy dự án
+## 6. Chạy dự án trên máy
 
-### Yêu cầu hệ thống
-
-- Java 17+
-- Maven 3.8+
-- Node.js 18+ và npm
-- MySQL 8+
-- Apache Tomcat 11 (hoặc server tương thích Jakarta EE 11)
-
----
-
-### 1. Clone repository
+**Yêu cầu:** Java 17+, Maven 3.8+, Node.js 18+, MySQL 8+, Docker (tuỳ chọn)
 
 ```bash
 git clone https://github.com/HieuLT24/SpringTicketSale.git
 cd SpringTicketSale
 ```
 
----
+**Backend** — khai báo các biến môi trường:
 
-### 2. Cấu hình Backend
-
-**a. Tạo database MySQL:**
-
-```sql
-CREATE DATABASE ticketsale CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-**b. Cấu hình kết nối database, email, Cloudinary, Google OAuth** trong file cấu hình Spring (ví dụ `applicationContext.xml` hoặc `application.properties`):
-
-```properties
-# Database
-spring.datasource.url=jdbc:mysql://localhost:3306/ticketsale
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-
-# Cloudinary
-cloudinary.cloud_name=your_cloud_name
-cloudinary.api_key=your_api_key
-cloudinary.api_secret=your_api_secret
-
-# Mail
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=your_email@gmail.com
-spring.mail.password=your_app_password
-
-# Google OAuth
-google.client.id=your_google_client_id
-```
-
-**c. Build và deploy backend:**
+| Nhóm | Biến |
+|---|---|
+| Database | `TOMCAT_DATASOURCE_URL`, `TOMCAT_DATASOURCE_USERNAME`, `TOMCAT_DATASOURCE_PASSWORD` |
+| JWT | `JWT_SECRET`, `JWT_EXPIRATION` |
+| MoMo | `MOMO_PARTNER_CODE`, `MOMO_ACCESS_KEY`, `MOMO_SECRET_KEY`, `MOMO_ENDPOINT`, `MOMO_REDIRECT_URL`, `MOMO_IPN_URL` |
+| VNPay | `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_URL`, `VNPAY_RETURN_URL` |
+| Mail | `SPRING_MAIL_HOST`, `SPRING_MAIL_PORT`, `SPRING_MAIL_USERNAME`, `SPRING_MAIL_PASSWORD` |
+| Cloudinary | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` |
+| Khác | `FRONTEND_BASE_URL` (+ Google Client ID trong `google-auth.properties`) |
 
 ```bash
+# Chạy bằng Docker
 cd TicketSale
-mvn clean package
-# Deploy file target/TicketSale-1.0-SNAPSHOT.war lên Tomcat
-# Hoặc copy vào thư mục webapps của Tomcat
+docker build -t tickethub-api .
+docker run -p 8080:8080 --env-file .env tickethub-api
+# API: http://localhost:8080/TicketSale/api/
 ```
 
-Backend sẽ chạy tại: `http://localhost:8080/TicketSale/`
-
----
-
-### 3. Cấu hình Firebase (cho tính năng Chat)
-
-Tạo project trên [Firebase Console](https://console.firebase.google.com/), bật **Firestore Database**, sau đó cập nhật `ticketweb/src/configs/Firebase.js` với config của bạn:
-
-```js
-export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-```
-
----
-
-### 4. Chạy Frontend
+**Frontend**
 
 ```bash
 cd ticketweb
 npm install
-npm start
-```
-
-Frontend chạy tại: `http://localhost:3000`
-
-> **Lưu ý:** Backend phải đang chạy ở `http://localhost:8080/TicketSale/` để frontend kết nối API.
-
----
-
-## Cấu trúc thư mục
-
-```
-SpringTicketSale/
-├── TicketSale/                         # Backend (Spring MVC)
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/pdh/
-│   │   │   │   ├── config/             # Cấu hình Spring, Security, Hibernate
-│   │   │   │   ├── controller/         # REST Controllers (Events, Users, Payment...)
-│   │   │   │   ├── entity/             # JPA Entities (Event, Ticket, User, Payment...)
-│   │   │   │   ├── dao/                # Data Access Objects
-│   │   │   │   ├── service/            # Business logic
-│   │   │   │   └── util/              # JWT, Mail, Cloudinary utilities
-│   │   │   ├── resources/             # Application properties
-│   │   │   └── webapp/
-│   │   │       └── WEB-INF/           # web.xml
-│   └── pom.xml
-│
-├── ticketweb/                          # Frontend (React)
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── auth/                  # Login, Register, ForgotPassword, ResetPassword
-│   │   │   ├── chat/                  # ChatList, ChatWindow (Firebase)
-│   │   │   ├── layout/                # Header, Footer
-│   │   │   ├── Home.js                # Trang chủ - danh sách sự kiện
-│   │   │   ├── EventDetail.js         # Chi tiết sự kiện + đặt vé
-│   │   │   ├── UserProfile.js         # Trang cá nhân
-│   │   │   ├── PaymentsPage.js        # Lịch sử đơn hàng
-│   │   │   ├── MyTicketsPage.js       # Vé của tôi
-│   │   │   ├── PaymentResult.js       # Kết quả thanh toán
-│   │   │   ├── MyEvents.js            # Quản lý sự kiện (Organizer)
-│   │   │   ├── EventDetailForOrganizer.js  # Chi tiết sự kiện cho Organizer
-│   │   │   └── RevenueStatistics.js   # Thống kê doanh thu
-│   │   ├── configs/
-│   │   │   ├── Apis.js                # Axios instances + API endpoints
-│   │   │   ├── Firebase.js            # Firebase config (Firestore)
-│   │   │   └── MyContexts.js          # React Context (user state)
-│   │   ├── reducers/
-│   │   │   └── MyUserReducer.js       # Reducer quản lý auth state
-│   │   ├── services/
-│   │   │   └── chatService.js         # Firestore chat utilities
-│   │   └── App.js                     # Root component + routing
-│   └── package.json
-│
-└── .gitignore
+# Đổi BASE_URL trong src/configs/Apis.js sang http://localhost:8080/TicketSale/api/
+# Điền cấu hình Firebase trong src/configs/Firebase.js
+npm start   # http://localhost:3000
 ```
 
 ---
 
-## API Endpoints
+## 7. API tiêu biểu
 
-Tất cả API có prefix: `http://localhost:8080/TicketSale/api/`
-
-### Public (không cần xác thực)
-
-| Method | Endpoint | Mô tả |
+| Nhóm | Endpoint | Ghi chú |
 |---|---|---|
-| `GET` | `events` | Lấy danh sách sự kiện |
-| `GET` | `events/{eventId}` | Chi tiết một sự kiện |
-| `GET` | `categories` | Danh sách danh mục |
-| `GET` | `categories/{cateId}` | Sự kiện theo danh mục |
-| `GET` | `{eventId}/tickets` | Vé còn lại của sự kiện |
-| `POST` | `login` | Đăng nhập (trả về JWT) |
-| `POST` | `register` | Đăng ký tài khoản |
-| `POST` | `login/google` | Đăng nhập bằng Google |
-| `GET` | `public/google-client-id` | Lấy Google Client ID |
-| `POST` | `forgot-password` | Yêu cầu reset mật khẩu |
-| `POST` | `reset-password` | Đặt lại mật khẩu |
-
-### Secured (`/secure/**` — cần JWT Bearer Token)
-
-| Method | Endpoint | Mô tả |
-|---|---|---|
-| `GET` | `secure/profile` | Lấy thông tin cá nhân |
-| `PUT` | `secure/profile` | Cập nhật thông tin cá nhân |
-| `PUT` | `secure/password` | Đổi mật khẩu |
-| `POST` | `secure/payment/process` | Xử lý thanh toán |
-| `GET` | `secure/payment/{paymentId}` | Chi tiết đơn thanh toán |
-| `GET` | `secure/payment/my` | Lịch sử thanh toán |
-| `GET` | `secure/payment/my/tickets` | Vé đã mua |
-| `POST` | `secure/organizer-request` | Yêu cầu nâng cấp Organizer |
-| `GET` | `secure/organizer-request-status` | Trạng thái yêu cầu |
-| `GET` | `secure/myEvents` | Danh sách sự kiện của Organizer |
-| `POST` | `secure/myEvents` | Tạo sự kiện mới |
-| `PUT` | `secure/myEvents/{eventId}` | Cập nhật sự kiện |
-| `DELETE` | `secure/myEvents/{eventId}` | Xóa sự kiện |
-| `GET` | `secure/events/{eventId}/sold-tickets` | Vé đã bán của sự kiện |
-| `GET` | `secure/events/{eventId}/revenue` | Doanh thu của sự kiện |
-| `GET` | `secure/revenue/events` | Thống kê doanh thu theo sự kiện |
-| `GET` | `secure/revenue/monthly` | Doanh thu theo tháng |
-| `GET` | `secure/revenue/quarterly` | Doanh thu theo quý |
-| `GET` | `secure/revenue/yearly` | Doanh thu theo năm |
-| `GET` | `secure/revenue/overall` | Tổng quan doanh thu |
+| Public | `GET /events`, `GET /events/{id}`, `GET /categories` | Hỗ trợ `kw`, `fromPrice`, `toPrice`, `cateId`, `orderBy`, `page` |
+| Auth | `POST /login`, `POST /register`, `POST /login/google` | Trả về JWT |
+| Auth | `POST /forgot-password`, `POST /reset-password` | Qua email |
+| Thanh toán | `POST /secure/payment/process` | Trả về `paymentUrl` |
+| Thanh toán | `POST /secure/payment/callback/momo/ipn`, `GET\|POST /secure/payment/callback/vnpay` | Callback từ cổng |
+| Thanh toán | `GET /secure/payment/my`, `GET /secure/payment/my/tickets` | Lịch sử & vé đã mua |
+| Organizer | `GET\|POST\|PUT\|DELETE /secure/myEvents` | Quản lý sự kiện |
+| Organizer | `GET /secure/revenue/{monthly\|quarterly\|yearly\|overall}` | Thống kê doanh thu |
 
 ---
 
-## Luồng hoạt động
+## 8. Hướng phát triển tiếp theo
 
-### Luồng mua vé
+Những hạng mục mình đã xác định và dự định cải thiện để sản phẩm tiến gần mức production:
 
-```
-Người dùng → Xem trang chủ → Chọn sự kiện
-    → Xem chi tiết & chọn vé
-    → Đăng nhập (nếu chưa) → Thanh toán
-    → Xem kết quả thanh toán → Vé lưu vào "Vé của tôi"
-```
-
-### Luồng đăng nhập
-
-```
-POST /api/login (username + password)
-    → Server xác thực → Trả về JWT
-    → Frontend lưu JWT vào cookie ('token')
-    → Mỗi request secured dùng Authorization: Bearer <token>
-```
-
-### Luồng chat (Firebase Firestore)
-
-```
-User A xem EventDetail → Click "Nhắn tin với ban tổ chức"
-    → ensureChatDocument(userA, organizerB) → Tạo/lấy chat document trên Firestore
-    → ChatWindow subscribe realtime onSnapshot
-    → Tin nhắn gửi/nhận real-time
-```
+- **Chống bán trùng vé**: giữ chỗ vé có thời hạn khi tạo đơn và khóa lạc quan/bi quan khi xác nhận thanh toán.
+- **Củng cố thanh toán**: xác thực chữ ký cho IPN của MoMo, đối chiếu số tiền với giá vé ở server, bảo đảm callback idempotent.
+- **Phân quyền chặt hơn**: đưa role vào JWT claims và dùng `@PreAuthorize`; tách loại token đặt lại mật khẩu khỏi token đăng nhập; kiểm tra chủ sở hữu khi xem chi tiết đơn.
+- **Kiểm thử**: viết unit test cho service và integration test cho luồng thanh toán.
+- **CI/CD**: GitHub Actions để build, test và deploy tự động.
+- **Chất lượng mã**: chuẩn hóa xử lý lỗi (`@ControllerAdvice`), bỏ `System.out`, thêm validation cho request.
 
 ---
-
-## Phân quyền
-
-| Vai trò | Quyền hạn |
-|---|---|
-| **GUEST** | Xem sự kiện, đăng ký, đăng nhập |
-| **USER** | Mua vé, xem lịch sử, cập nhật profile, chat, yêu cầu nâng cấp Organizer |
-| **ORGANIZER** | Tất cả quyền của USER + Tạo/quản lý sự kiện + Xem thống kê doanh thu |
-
----
-
-## Tác giả
-
-**HieuLT24** — [GitHub](https://github.com/HieuLT24)
