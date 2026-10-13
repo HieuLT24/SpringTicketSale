@@ -132,7 +132,8 @@ public class SpringSecurityConfigs {
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
-                "https://spring-ticket-sale-eight.vercel.app"
+                "https://spring-ticket-sale-eight.vercel.app",
+                "https://springticketsale-production.up.railway.app"
 
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
